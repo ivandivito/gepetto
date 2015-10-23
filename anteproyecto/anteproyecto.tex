@@ -1,0 +1,193 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel} 
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{stmaryrd}
+
+\usepackage{amsfonts}
+\usepackage{booktabs}
+\usepackage{array}
+
+\usepackage{multicol}
+\usepackage{multirow}
+
+\usepackage{soulutf8}
+\usepackage{color}
+
+\usepackage{geometry}
+\geometry{
+	a4paper,
+	left=25mm,
+	right=25mm,
+	top=25mm,
+	bottom=25mm,
+}
+
+\newcolumntype{x}[1]{>{\hfil$\displaystyle} p{#1} <{$\hfil}} 
+
+\begin{document}
+	
+	\begin{titlepage}
+	
+	\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+	
+	\center
+	
+	\begin{tabular}{l c }
+		\raisebox{-.5\height}{\includegraphics{img/FIUBA}} & \text{\bfseries{LABORATIORIO DE MICROCOMPUTADORAS (66.09)}}
+	\end{tabular}\\[0.4cm]
+
+	\HRule \\[0.4cm]
+	{ \LARGE \bfseries Informe de Anteproyecto} \\[0.2cm]
+	\HRule
+	\\[0.3cm]
+	
+	\def\arraystretch{1.5}
+	
+	\begin{tabular}{ |m{0.3\textwidth}|m{0.3\textwidth}|m{0.3\textwidth}| }
+		\hline
+		\bfseries{Anteproyecto}				& \multicolumn{2}{|l|}{\bfseries{Sistema embebido controlador de fresadora CNC}} \\ \hline
+		\multirow{3}{*}{Autores} 	& Tomás Völker		& 95586 \\
+									& Ivan Divito 		& 95722 \\ 
+									& Mauro Giordano	& 94647 \\ \hline
+		Turno de T.P. 				& Martes 19-22 hs. 	&  \\ \hline
+		Año y Cuatrimestre 			& 2015 				& 2do \\ \hline
+		Docente Guía						& \multicolumn{2}{|l|}{-} \\ \hline
+	\end{tabular}\\[0.4cm]
+	
+	\def\arraystretch{2}
+	
+	\begin{tabular}{ |m{0.96\textwidth}| }
+		\hline
+		\bfseries{Observaciones generales} \\ \hline
+		\\ \hline
+		\\ \hline
+		\\ \hline
+		\\ \hline
+		\\ \hline
+		\\ \hline
+	\end{tabular}\\[0.4cm]
+	
+	\def\arraystretch{2}
+	
+	\begin{tabular}{|m{0.2\textwidth}|m{0.73\textwidth}|}
+		\hline
+		\multirow{3}{*}{Firma del Docente} 	& \\
+											& \\ 
+											& \\ \hline
+		Fecha & \\ \hline
+		
+	\end{tabular}
+	
+	\def\arraystretch{1}
+	
+	\end{titlepage}
+	
+	\section{Objetivo del Proyecto}
+	
+	La producción de piezas mecánicas de forma precisa es una necesidad importante en muchas áreas. Con la introducción de la electrónica digital se desarrolló la Fabricación Asistida por Computadora (CAM por sus siglas en ingles) que permite la producción automatizada y precisa de estos componentes. Una de las herramientas que utilizan estas técnicas es la fresadora por Control Numérico Computarizado (CNC) que consiste en una fresa montada sobre una estructura que se mueve en 3 ejes ortogonales movilizados por motores controlados por un sistema digital.\\
+	
+	En los últimos años se ha vuelto más accesible a particulares la construcción de este tipo de maquinas. Estas generalmente están formadas por una computadora de escritorio que controla de manera directa los motores. Esto implica que el software de control de los motores se encuentra totalmente en una computadora personal. Esta tarea es muy dependiente de los componentes que forman la fresadora por lo que se podría embeber en la misma, simplificando la interacción entre la fresadora y la PC. Esto permite que el software de la computadora sea más simple y portable, además de independizar el funcionamiento de la maquinaria. Otro beneficio es la simplificación para el usuario de la configuración general del equipo.\\
+	
+	Nuestro objetivo es, partiendo de una fresadora controlada por un puerto paralelo de PC, desarrollar un sistema embebido capaz de controlar la fresadora, comunicarse vía USB con una computadora y ser capaz de ejecutar autónomamente las rutinas necesarias para la producción de una pieza previamente cargada en el sistema.
+	
+	\section{Descripción del Proyecto}
+	
+    El proyecto consistirá en la contrucción de un sistema compuesto de dos microcontroladores. Uno de estos interpretará las instrucciones de ruteo y las ejecutará enviando las ordenes necesarias a los controladores de motores. El otro microcontrolador administrará la interfaz de usuario, la comunicación con una PC a través de USB y hará uso de una memoria SD para almacenar programas a ejecutar de forma autónoma. De esta forma, se aísla el funcionamiento de la parte más critica del sistema, siendo esta el control de los motores, de la interfaz de usuario y la comunicación con perifericos, resultando en un diseño modular.\\
+    Debido a su complejidad, la tarea de ejecutar las instrucciones de ruteo se implementará utilizando el firmware de código abierto GRBL\footnote{El código fuente se encuentra disponible en \url{https://github.com/grbl/grbl}} el cual es capaz de ejecutar instrucciones del estándar de archivos de ruteo G-code de forma óptima, brindando la seguridad de ser un firmware ampliamente utilizado. Este software se comunicará con el otro microcontrolador el cual será programado en lenguaje ensamblador para realizar las tareas de comunicación con una PC, almacenamiento de rutinas de ejecución e interacción con el usuario a través de un display LCD y botones. De esta forma el sistema será capaz de funcionar de dos maneras. En el caso de que se conecte una PC por USB se podrá enviar instrucciones especificas para ser ejecutadas de forma inmediata, o bien se podrá cargar un archivo G-code en la memoria SD para ser ejecutado de forma autónoma cuando lo desee el usuario.\\
+	
+	\section{Características y Especificaciones Mínimas}
+	
+	El sistema embebido a implementar será capaz de controlar una fresadora con volumen de trabajo de 30 Cm x 30 Cm x 9 Cm. El microcontrolador que corra el firmware GRBL será un ATmega328 de arquitectura AVR, para el cual el firmware esta diseñado. Este se comunicará a través de un puerto UART con el otro microcontrolador que durante la etapa de desarrollo será también un ATmega328 pero al finalizar se considerará analizando las exigencias del firmware la utilización de un microcontrolador de menores prestaciones. Para la comunicación con la computadora de escritorio se utilizará un conversor UART-USB ya que el ATmega328 y otros dispositivos similares no disponen de interfaz USB. La interfaz de usuario compuesta por un display LCD y un conjunto de botones permitirá aceptar o rechazar una conección USB, comenzar la ejecución de una rutina cargada en memoria, detenerla, reanudarla, cancelarla y mostrar información sobre el progreso de la misma. También se implementará el software para PC que permitirá cargar la rutina en memoria y ejecutar instrucciones de forma inmediata, ademas de consultar información sobre el estado del sistema.
+	
+	\section{Periféricos Principales}
+	
+	El proyecto cuenta con 2 microncontroladores con funciones distintas como se explico anteriormente. Ademas de estos integrados el proyecto cuenta con los siguientes componentes electricos:
+	
+	\begin{itemize}
+		\item 3 motores paso a paso bipolares Nema 23(Long Motor 23HS9430)
+		\item 3 controladores de motor paso a paso (Long Motor DM542A)
+		\item 6 micro-swiches para fin de carrera de eje
+		\item memoria SD
+		\item Display LCD
+		\item Botones
+		\item Conversor USB a puerto serie
+		\item Conversor de tensiones para comunicación por puerto serie.
+		\item Dremel con controlador
+		\item Fuente 220V – 33V para controladores de motores
+		\item Fuente 220V – 48V para dremel
+		\item Fuente 220V – 3.3V para alimentación del sistema digital. 
+	\end{itemize}
+	
+	\section{Diagrama en Bloques Preliminar (hardware)}
+	
+    El diagrama en bloque de hardware se muestra en la figura \ref{flujo_hardware} adjuntada.
+    
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=\linewidth]{img/diagrama_hardware.png}
+		\caption{Diagrama de flujo del hardware}
+		\label{flujo_hardware}
+	\end{figure}
+	
+	\section{Diagrama de Flujo Preliminar (firmware)}
+	
+	El software que va a ser desarrollado en este proyecto es el del microcontrolador de control. El diagrama de flujo del mismo se va la presentar en las figuras \ref{flujo_control_1} y \ref{flujo_control_2}.
+    
+    \begin{figure}[ht]
+		\centering
+		\includegraphics[width=\linewidth]{img/flujo_modularizado_1.jpg}
+		\caption{Diagrama de flujo del software del microcontrolador de control}
+		\label{flujo_control_1}
+	\end{figure}
+    
+    \begin{figure}[ht]
+		\centering
+		\includegraphics[width=\linewidth]{img/flujo_modularizado_2.jpg}
+		\caption{Diagrama de flujo del software del microcontrolador de control}
+		\label{flujo_control_2}
+	\end{figure}
+
+
+	\section{Plan de Trabajo (Gantt)}
+	
+	Se presenta en la figura \ref{diagrama_gantt} el diagrama de Gantt para organizar los tiempos y recursos a lo largo del proyecto.
+    
+        \begin{figure}[ht]
+		\centering
+		\includegraphics[width=\linewidth]{img/gantt.png}
+		\caption{Diagrama de Gantt}
+		\label{diagrama_gantt}
+	\end{figure}
+	
+	\section{Listado de Componentes y Costos Estimados}
+	
+	Los precios de los principales componentes del proyecto son los siguientes:
+    
+    \begin{itemize}
+    
+    \item 1 INTERFAZ USB-UART 				$\$130$
+    \item 2 ATMEGA328P						$\$160$
+    \item LCD HITACHI HD44780				$\$90$
+    \item 1 MEMORIA SD 2Gb					$\$65$
+    \item 1 LM7805							$\$10$
+    \item 1 L78l33							$\$37$
+    \item 2 CRISTAL 8MHz					$\$20$
+
+	\end{itemize}
+    
+	\section{Factores Críticos de Éxito}
+	
+	Los factores de riesgo son potenciales acontecimientos fortuitos que pueden provocar retrasos en el proyecto o la imposibilidad de realizar el mismo. Para evitar que esto ocurra, se ha investigado en proyectos similares, lo cual permitirá prever la mayor cantidad de imprevistos posibles. Dichos factores son:
+	
+	\begin{itemize}
+		\item Posibles errores mecánicos del sistema (Ej: perdida de pasos de los motores)
+		\item Desarrollo del software de conexión USB (problemas de compatibilidad entre el adaptador USB-UART y la PC)
+		\item Implementación por software de un segundo puerto serie en el microcontrolador de control.
+        \item Problemas en el desarrollo de la interfaz SPI para comunicarse con la memoria SD
+    \end{itemize}
+
+\end{document}
