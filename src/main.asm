@@ -1,5 +1,7 @@
 .INCLUDE "m328pdef.inc"
 
+.DEF ZERO_REG = R1
+
 .DSEG
 
 .CSEG
@@ -10,17 +12,14 @@
 	JMP SOFT_UART_INTERRUPT
 
 	
-	
-	
-	
-	
-
 .ORG INT_VECTORS_SIZE
 MAIN:
 	
 	;INICIALIZACION
 	
 	;Inicilizacion Sistema (stack pointer, timers, etc)
+	
+	CLR ZERO_REG
 	
 	LDI R16, LOW(RAMEND)
 	OUT SPL, R16
