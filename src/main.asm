@@ -1,4 +1,4 @@
-.INCLUDE "m32def.inc"
+.INCLUDE "m328pdef.inc"
 
 .DSEG
 
