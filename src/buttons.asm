@@ -98,7 +98,9 @@ BUTTONS_READ:
 		CPC TEMP_2, TEMP_4
 		
 		BRLO BUTTONS_TIME_NOT_COMPLETED:; Si es menor continuar
-		
+			
+			STS BAR, ZERO_REG ; Limpiar botones activos
+			
 			IN TEMP_1, BUTTONS_PIN ;Leer pines
 			AND ACTIVE_REG, TEMP_1 ;Condicionar con los leidos inicialmente
 			MOV RESULT_REG, ACTIVE_REG ;Mover al registro de resultado
