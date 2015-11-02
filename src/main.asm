@@ -1,5 +1,7 @@
 .INCLUDE "m328pdef.inc"
 
+
+
 .DEF ZERO_REG = R1
 
 .DSEG
@@ -25,6 +27,8 @@ MAIN:
 	OUT SPL, R16
 	LDI R16, HIGH(RAMEND)
 	OUT SPH, R16
+	
+	CALL BUTTONS_TIMER_INIT
 	
 	;Inicializacion SOFTUART (Micro interprete)
 	
