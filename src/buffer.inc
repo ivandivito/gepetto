@@ -20,7 +20,7 @@ BUFFER_INSERT_P_STR BUFFER, BUFFER_POINTER
 Las macros respetan el uso de los registros como si fueran subrutinas
 */
 
-.DEF ZERO_REG = R0
+.DEF ZERO_REG = R1
 
 
 ;Esta es una macro interna, no utilizar

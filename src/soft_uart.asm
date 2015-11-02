@@ -77,7 +77,7 @@ SOFT_UART_INIT:
 
 	LDS TEMP, EICRA
 	ANDI TEMP, ~((1<<SOFT_UART_ISC0)|(1<<SOFT_UART_ISC1))
-	OUT MCUCR, TEMP ;Habilitar interrupcion en nivel bajo
+	OUT EICRA, TEMP ;Habilitar interrupcion en nivel bajo
 
 	SBI SOFT_UART_TX_PORT, SOFT_UART_TX ;Poner en alto la salida
 
