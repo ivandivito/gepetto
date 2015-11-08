@@ -1,3 +1,5 @@
+.IFNDEF BUFFER_INC
+.EQU BUFFER_INC = 0
 
 .INCLUDE "gepetto.inc"
 
@@ -158,3 +160,5 @@ HERE: RJMP HERE
 
 MESSAGE: .DB "hola mundo", 0
 */
+
+.ENDIF

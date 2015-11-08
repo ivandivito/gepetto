@@ -37,9 +37,9 @@ BUTTONS_INIT:
 	
 BUTTONS_TIMER_INIT:
 	
-	OUT TCCR1A, ZERO_REG
+	STS TCCR1A, ZERO_REG
 	LDI TEMP, TIMER_PRESCALER ; Configurar prescaler y comenzar a contar
-	OUT TCCR1B, TEMP
+	STS TCCR1B, TEMP
 	
 	RET
 
@@ -48,13 +48,15 @@ BUTTONS_TIMER_INIT:
 .DEF ACTIVE_REG = R10
 .DEF TEMP_1 = R11
 .DEF TEMP_2 = R12
-.DEF TEMP_3 = R13
-.DEF TEMP_4 = R14
+.DEF TEMP_3 = R18
+.DEF TEMP_4 = R19
 
 .DEF RESULT_REG = R16
 	
 BUTTONS_READ:
-	
+	PUSH TEMP_3
+	PUSH TEMP_4
+
 	CLR RESULT_REG ;Limpiar resultado
 	
 	LDS ACTIVE_REG, BAR; Verifica si hay botones activos
@@ -64,33 +66,35 @@ BUTTONS_READ:
 		LDS TEMP_2, BLMR ;Obtener ultima medicion
 		COM TEMP_2 ;Complementar
 		
-		IN TEMP_1, BUTTONS_PIN ;Leer los pines de los botones
-		ANDI TEMP_1, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
+		IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
+		ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
 		
-		STS BLMR, TEMP_1 ;Guardar como ultima medicion
+		STS BLMR, TEMP_3 ;Guardar como ultima medicion
 		
-		AND TEMP_1, TEMP_2 ;Verifcar botones que no estaban apretados y ahora si
+		AND TEMP_3, TEMP_2 ;Verifcar botones que no estaban apretados y ahora si
 		
 		BREQ BUTTONS_EXIT ;Si se da, guardar como activos
 		
-			OUT BAR, TEMP_1 ;  Guardar como botones activos
+			STS BAR, TEMP_1 ;  Guardar como botones activos
 			
 			;Tomar timestap
-			IN TEMP_1, TCNT1L
-			IN TEMP_2, TCNT1H
+			LDS TEMP_1, TCNT1L
+			LDS TEMP_2, TCNT1H
 			
 			;Guardar timestamp
-			STS TEMP_1, BTRL
-			STS TEMP_2, BTRH
+			STS BTRL ,TEMP_1
+			STS BTRH, TEMP_2
 		
 		BUTTONS_EXIT:
+		POP TEMP_4
+		POP TEMP_3
 		RET
 	
 	BUTTONS_CHECK_TIME:
 	
 		;Tomar tiempo
-		IN TEMP_1, TCNT1L
-		IN TEMP_2, TCNT1H
+		LDS TEMP_1, TCNT1L
+		LDS TEMP_2, TCNT1H
 		
 		;Cargar timestamp
 		LDS TEMP_3, BTRL
@@ -108,18 +112,20 @@ BUTTONS_READ:
 		CP TEMP_1, TEMP_3
 		CPC TEMP_2, TEMP_4
 		
-		IN TEMP_1, BUTTONS_PIN ;Leer los pines de los botones
-		ANDI TEMP_1, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
+		IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
+		ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
 		
-		STS BLMR, TEMP_1 ;Guardar como ultima medicion
+		STS BLMR, TEMP_3 ;Guardar como ultima medicion
 		
-		BRLO BUTTONS_TIME_NOT_COMPLETED:; Si es menor continuar
+		BRLO BUTTONS_TIME_NOT_COMPLETED; Si es menor continuar
 			
 			STS BAR, ZERO_REG ; Limpiar botones activos
 			
-			AND ACTIVE_REG, TEMP_1 ;Condicionar con los leidos inicialmente
+			AND ACTIVE_REG, TEMP_3 ;Condicionar con los leidos inicialmente
 			MOV RESULT_REG, ACTIVE_REG ;Mover al registro de resultado
 			
 		BUTTONS_TIME_NOT_COMPLETED:
+		POP TEMP_4
+		POP TEMP_3
 		RET
 	

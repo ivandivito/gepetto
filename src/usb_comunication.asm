@@ -12,7 +12,7 @@ USB_BUFFER_POINTER: .BYTE 1
 .CSEG
 
 ;Subrutina para inicializar el UART para conectar el USB
-.DEF R16 = TEMP
+.DEF  TEMP = R16
 
 USB_INIT:
 	
@@ -67,15 +67,15 @@ USB_SEND_D_STRING:
 ;Subrutina para enviar una cadena de caracteres en memoria de programa. El string es apuntado por Z y temina en cero
 .DEF CHAR_REG = R16
 
-USB_SEND_D_STRING:
+USB_SEND_P_STRING:
 	PUSH ZL
 	PUSH ZH
 	
-	USB_SEND_D_STRING_LOOP:
+	USB_SEND_P_STRING_LOOP:
 		LPM CHAR_REG, Z+
 		RCALL USB_SEND_CHAR
 		TST CHAR_REG ;Analizar si cambiar a cadena terminada en \n
-		BRNE USB_SEND_D_STRING_LOOP
+		BRNE USB_SEND_P_STRING_LOOP
 	
 	POP ZH
 	POP ZL

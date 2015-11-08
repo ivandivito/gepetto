@@ -39,7 +39,6 @@ SUCSR: .BYTE 1
 
 Ejemplo de uso
 
-.CSEG
 .ORG 0x00
 	JMP MAIN
 
@@ -71,6 +70,8 @@ MAIN:
 HERE: RJMP HERE
 */
 
+.CSEG
+
 ;Subrutina que configura los pines de salida y entrada y el timer
 
 .DEF  TEMP = R16
@@ -82,7 +83,7 @@ SOFT_UART_INIT:
 
 	LDS TEMP, EICRA
 	ANDI TEMP, ~((1<<SOFT_UART_ISC0)|(1<<SOFT_UART_ISC1))
-	OUT EICRA, TEMP ;Habilitar interrupcion en nivel bajo
+	STS EICRA, TEMP ;Habilitar interrupcion en nivel bajo
 
 	SBI SOFT_UART_TX_PORT, SOFT_UART_TX ;Poner en alto la salida
 
@@ -235,7 +236,7 @@ SOFT_UART_INTERRUPT:
 		OUT SOFT_UART_TCCRB, ZERO_REG ;Detiene el timer
 		OUT SOFT_UART_TCNT, ZERO_REG ;Limpia el timer
 		
-		CALL SOFT_UART_RX_INT
+		CALL INT_VECTORS_SIZE
 		
 		RJMP SOFT_UART_READ_END
 	SOFT_UART_READ_EXIT:
