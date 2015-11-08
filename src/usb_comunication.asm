@@ -20,29 +20,31 @@ USB_INIT:
 	
 	;Setear baud rate
 	LDI TEMP, LOW(UART_UBRR)
-	OUT UBRR0L, TEMP
+	STS UBRR0L, TEMP
 	LDI TEMP, HIGH(UART_UBRR)
-	OUT UBRR0H, TEMP
+	STS UBRR0H, TEMP
 	
 	;Configurar 8 bits de transferencia, sin paridad, 1 stop bit
 	LDI TEMP, (1<<UCSZ01)| (1<<UCSZ00)
-	OUT UCSR0C, TEMP
+	STS UCSR0C, TEMP
 	
 	;Habilitar envio, recepcion e interrupciones
-	LDI TEMP, (1<<RXCIE)|(1<<RXEN0)|(1<<TXEN0)
-	OUT UCSR0B, TEMP
+	LDI TEMP, (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0)
+	STS UCSR0B, TEMP
 	
 	RET
 
 ;Subrutina para enviar un caracter por USB
 .DEF CHAR_REG = R16
+.DEF TEMP = R17
 	
 USB_SEND_CHAR:
 	;Esperar a que el buffer este listo
-	SBIS UCSR0A, UDRE0
-	RJMP USB_SEND_CHAR
+	LDS TEMP, UCSR0A
+	ANDI TEMP, (1<<UDRE0)
+	BREQ USB_SEND_CHAR
 	
-	OUT UDR0, CHAR_REG
+	STS UDR0, CHAR_REG
 	
 	RET
 	
@@ -89,7 +91,7 @@ USB_INTERRUPT:
 	PUSH YL
 	PUSH YH
 	
-	IN R16, UDR0
+	LDS R16, UDR0
 	
 	BUFFER_INSERT_CHAR USB_BUFFER, USB_BUFFER_POINTER
 	
