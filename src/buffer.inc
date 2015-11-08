@@ -20,7 +20,7 @@ BUFFER_INSERT_P_STR BUFFER, BUFFER_POINTER
 Las macros respetan el uso de los registros como si fueran subrutinas
 */
 
-;Esta es una macro interna, no utilizar
+;Macro para apuntar al final del buffer
 .DEF BUFFER_POINTER_REG = R17
 
 .MACRO POINT_Y_TO_END_OF_BUFFER

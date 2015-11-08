@@ -1,7 +1,10 @@
 .INCLUDE "gepetto.inc"
 
+.EQU UIS = 0
+
 .DSEG
 CURRENT_STATE: .BYTE 1
+GGR: .BYTE 1; Gepetto General Register (- - - - - - - UIS(UI state))
 
 .CSEG
 .ORG 0x00
@@ -31,10 +34,11 @@ MAIN:
 	OUT SPH, R16
 	
 	CALL BUTTONS_TIMER_INIT
+	CALL BUTTONS_INIT
 	
 	;Inicializacion SOFTUART (Micro interprete)
 	
-	
+	CALL GRBL_COM_INIT
 	
 	;Inicializacion USART (PC)
 	
