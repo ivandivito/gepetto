@@ -11,7 +11,7 @@ GRBL_BUFFER_POINTER: .BYTE 1
 .CSEG
 
 ;Subrutina para inicializar el soft UART para conectar con GRBL
-.DEF R16 = TEMP
+.DEF TEMP = R16
 
 GRBL_COM_INIT:
 	
@@ -54,16 +54,16 @@ GRBL_SEND_D_STRING:
 ;Subrutina para enviar una cadena de caracteres en memoria de programa. El string es apuntado por Z y temina en cero
 .DEF CHAR_REG = R16
 
-GRBL_SEND_D_STRING:
+GRBL_SEND_P_STRING:
 	PUSH ZL
 	PUSH ZH
 	
-	USB_SEND_D_STRING_LOOP:
+	USB_SEND_P_STRING_LOOP:
 		LPM CHAR_REG, Z+
 		STS SUODR, CHAR_REG
 		CALL SOFT_UART_SEND_BYTE
 		TST CHAR_REG ;Analizar si cambiar a cadena terminada en \n
-		BRNE USB_SEND_D_STRING_LOOP
+		BRNE USB_SEND_P_STRING_LOOP
 	
 	POP ZH
 	POP ZL
