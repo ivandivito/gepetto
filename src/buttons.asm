@@ -1,4 +1,4 @@
-.INCLUDE "m328pdef.inc"
+.INCLUDE "gepetto.inc"
 
 .EQU BUTTONS_THRESHOLD = 400 ;Umbral de tiempo para reconocer un boton. El valor es BUTTONS_THRESHOLD*prescaler/f_clock
 
@@ -9,8 +9,6 @@
 .EQU BUTTONS_CHANGE = 7
 
 .EQU TIMER_PRESCALER = 0b00000101
-
-.DEF ZERO_REG = R1
 
 .DSEG
 ;Buttons active register

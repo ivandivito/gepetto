@@ -1,6 +1,4 @@
-.INCLUDE "m328pdef.inc"
-
-.DEF ZERO_REG = R1
+.INCLUDE "gepetto.inc"
 
 .EQU SOFT_UART_TX_PORT = PORTD
 .EQU SOFT_UART_TX_DDR = DDRD

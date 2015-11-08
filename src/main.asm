@@ -1,10 +1,7 @@
-.INCLUDE "m328pdef.inc"
-
-
-
-.DEF ZERO_REG = R1
+.INCLUDE "gepetto.inc"
 
 .DSEG
+CURRENT_STATE: .BYTE 1
 
 .CSEG
 .ORG 0x00
@@ -41,50 +38,43 @@ MAIN:
 	
 	;Inicializacion SPI (SD)
 	
+	SEI
+	
 	;Verificar programa guardado
 	
 	;Configurar e inicializar GRBL
-	
-	SEI
 
-STATE_IDLE:
+.DEF STATE_REG = R16
 	
-	;Procesar buffer GRBL
+MAIN_LOOP:
+	;Cargar estado
+	LDS STATE_REG, STATE
 	
-	;Verificar connección PC
+	CPI STATE_REG, STATE_IDLE
+	BREQ MAIN_IDLE
 	
-	;Procesar botones
+	CPI STATE_REG, STATE_CONNECTED
+	BREQ MAIN_CONNECTED
 	
-	;Actualizar UI
-	RJMP STATE_IDLE
+	CPI STATE_REG, STATE_RUNNING
+	BREQ MAIN_RUNNING
 	
-STATE_CONNECTED:
+	RJMP MAIN_ERROR
 	
-	;Procesar botones
+	MAIN_IDLE:
+		CALL IDLE_RUN
+		RJMP MAIN_LOOP
+		
+	MAIN_CONNECTED:
+		CALL CONNECTED_RUN
+		RJMP MAIN_LOOP
+		
+	MAIN_RUNNING:
+		CALL RUNNING_RUN
+		RJMP MAIN_LOOP
+		
+	MAIN_ERROR:
+		CALL IDLE_ERROR
+		RJMP MAIN_LOOP
 	
-	;Procesar buffer USB (guardar o ejecutar)
-	
-	;Procesar buffer GRBL
-	
-	;Actualizar UI
-	RJMP STATE_CONNECTED
-	
-STATE_RUNNING:
-	
-	;Procesar botones
-	
-	;Procesar buffer SPI
-	
-	;Procesar buffer GRBL
-	
-	;Actualizar UI
-	RJMP STATE_RUNNING
-	
-STATE_ERROR:
-	
-	;Procesar Botones
-	
-	;Actualizar UI
-	
-	RJMP STATE_ERROR
 	
