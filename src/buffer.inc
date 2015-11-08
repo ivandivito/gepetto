@@ -1,5 +1,5 @@
 
-.INCLUDE "m328pdef.inc"
+.INCLUDE "gepetto.inc"
 
 /*
 
@@ -19,9 +19,6 @@ BUFFER_INSERT_P_STR BUFFER, BUFFER_POINTER
 
 Las macros respetan el uso de los registros como si fueran subrutinas
 */
-
-.DEF ZERO_REG = R1
-
 
 ;Esta es una macro interna, no utilizar
 .DEF BUFFER_POINTER_REG = R17
