@@ -39,7 +39,6 @@ SUCSR: .BYTE 1
 
 Ejemplo de uso
 
-.CSEG
 .ORG 0x00
 	JMP MAIN
 
@@ -71,6 +70,8 @@ MAIN:
 HERE: RJMP HERE
 */
 
+.CSEG
+
 ;Subrutina que configura los pines de salida y entrada y el timer
 
 .DEF  TEMP = R16
@@ -82,7 +83,7 @@ SOFT_UART_INIT:
 
 	LDS TEMP, EICRA
 	ANDI TEMP, ~((1<<SOFT_UART_ISC0)|(1<<SOFT_UART_ISC1))
-	OUT EICRA, TEMP ;Habilitar interrupcion en nivel bajo
+	STS EICRA, TEMP ;Habilitar interrupcion en nivel bajo
 
 	SBI SOFT_UART_TX_PORT, SOFT_UART_TX ;Poner en alto la salida
 
@@ -201,9 +202,9 @@ SOFT_UART_INTERRUPT:
 	PUSH BITS_READ
 
 	RCALL SOFT_UART_READ_BIT
-
-	BRCS READ_EXIT ;Si el bit de start no es zero, salir
-
+	
+	BRCC SOFT_UART_READ_EXIT ;Si el bit de start no es zero, salir
+		
 		LDI BITS_READ, 8
 		CLR RESULT
 
@@ -213,22 +214,38 @@ SOFT_UART_INTERRUPT:
 			DEC BITS_READ
 			BRNE READ_BIT
 
-			RCALL SOFT_UART_READ_BIT
-			BRCC FRAMING_ERROR ;Si el ultimo bit leido es bajo informar error
+		RCALL SOFT_UART_READ_BIT
+		
+		BRCC FRAMING_ERROR ;Si el ultimo bit leido es bajo informar error
 
-				STS SUIDR, RESULT
-				RJMP READ_EXIT
-
-			FRAMING_ERROR:
-				LDS TEMP, SUCSR
-				ORI TEMP, 1<<SOFT_UART_FE
-				STS SUCSR, TEMP
-
-	READ_EXIT:
-	OUT SOFT_UART_TCCRB, ZERO_REG ;Detiene el timer
-
-	OUT SOFT_UART_TCNT, ZERO_REG ;Limpia el timer
-
+			LDS TEMP, SUCSR
+			ANDI TEMP, ~(1<<SOFT_UART_FE)
+			
+			RJMP SOFT_UART_POST_READ
+		FRAMING_ERROR:
+		
+			LDS TEMP, SUCSR
+			ORI TEMP, 1<<SOFT_UART_FE
+			
+		SOFT_UART_POST_READ:
+		
+		STS SUCSR, TEMP
+		
+		STS SUIDR, RESULT
+		
+		OUT SOFT_UART_TCCRB, ZERO_REG ;Detiene el timer
+		OUT SOFT_UART_TCNT, ZERO_REG ;Limpia el timer
+		
+		CALL INT_VECTORS_SIZE
+		
+		RJMP SOFT_UART_READ_END
+	SOFT_UART_READ_EXIT:
+	
+		OUT SOFT_UART_TCCRB, ZERO_REG ;Detiene el timer
+		OUT SOFT_UART_TCNT, ZERO_REG ;Limpia el timer
+		
+	SOFT_UART_READ_END:
+	
 	POP BITS_READ
 	POP RESULT
 	POP SAMPLE_COUNT

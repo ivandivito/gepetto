@@ -1,7 +1,10 @@
 .INCLUDE "gepetto.inc"
 
+.EQU UIS = 0
+
 .DSEG
 CURRENT_STATE: .BYTE 1
+GGR: .BYTE 1; Gepetto General Register (- - - - - - - UIS(UI state))
 
 .CSEG
 .ORG 0x00
@@ -10,8 +13,13 @@ CURRENT_STATE: .BYTE 1
 .ORG INT0addr
 	JMP SOFT_UART_INTERRUPT
 
+.ORG URXCaddr
+	JMP USB_INTERRUPT
 	
 .ORG INT_VECTORS_SIZE
+SOFT_UART_RX_INT:
+	JMP GRBL_INTERRUPT
+
 MAIN:
 	
 	;INICIALIZACION
@@ -26,15 +34,15 @@ MAIN:
 	OUT SPH, R16
 	
 	CALL BUTTONS_TIMER_INIT
+	CALL BUTTONS_INIT
 	
 	;Inicializacion SOFTUART (Micro interprete)
 	
-	LDI R16, SOFT_UART_DEF_SUBR
-	STS SUBR, R16
-
-	CALL SOFT_UART_INIT
+	CALL GRBL_COM_INIT
 	
 	;Inicializacion USART (PC)
+	
+	CALL USB_INIT
 	
 	;Inicializacion SPI (SD)
 	
