@@ -1,5 +1,3 @@
-.INCLUDE "gepetto.inc"
-.INCLUDE "buffer.inc"
 
 .CSEG
 
@@ -42,7 +40,7 @@ IDLE_RUN:
 	MOV R11, R16
 	
 	ANDI R16, (1<<BUTTONS_CHANGE) ; Si es el boton de cambiar
-	BRNE IDLE_TEST_CONFIRM
+	BREQ IDLE_TEST_CONFIRM
 	
 		LDS R11, GGR
 		LDI R16, (1<<UIS)

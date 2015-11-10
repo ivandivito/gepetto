@@ -1,8 +1,7 @@
-.INCLUDE "gepetto.inc"
 
 .CSEG
 
-STATE_RUNNING:
+RUNNING_RUN:
 	
 	;Procesar botones
 	

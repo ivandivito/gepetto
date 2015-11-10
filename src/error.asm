@@ -1,11 +1,9 @@
-.INCLUDE "gepetto.inc"
 
 .CSEG
 
-STATE_ERROR:
+ERROR_RUN:
 	
-	;Procesar Botones
+	;Procesar botones
 	
 	;Actualizar UI
-	
 	RET

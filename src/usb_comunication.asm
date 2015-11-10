@@ -1,6 +1,3 @@
-.INCLUDE "gepetto.inc"
-
-.INCLUDE "buffer.inc"
 
 .EQU UART_UBRR = 103 ; 9600
 

@@ -31,7 +31,7 @@
 SUBR: .BYTE 1
 ;Soft UART Output Data Register
 SUODR: .BYTE 1
-;Soft UART Input Dara Register
+;Soft UART Input Data Register
 SUIDR: .BYTE 1
 ;Soft UART Control and State Register
 SUCSR: .BYTE 1

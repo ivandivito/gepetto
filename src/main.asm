@@ -33,6 +33,9 @@ MAIN:
 	LDI R16, HIGH(RAMEND)
 	OUT SPH, R16
 	
+	LDI R16, STATE_IDLE
+	STS CURRENT_STATE, R16
+
 	CALL BUTTONS_TIMER_INIT
 	CALL BUTTONS_INIT
 	
@@ -56,7 +59,7 @@ MAIN:
 	
 MAIN_LOOP:
 	;Cargar estado
-	LDS STATE_REG, STATE
+	LDS STATE_REG, CURRENT_STATE
 	
 	CPI STATE_REG, STATE_IDLE
 	BREQ MAIN_IDLE
@@ -82,7 +85,20 @@ MAIN_LOOP:
 		RJMP MAIN_LOOP
 		
 	MAIN_ERROR:
-		CALL IDLE_ERROR
+		CALL ERROR_RUN
 		RJMP MAIN_LOOP
-	
-	
+
+.INCLUDE "buffer.inc"
+
+.INCLUDE "buttons.asm"
+
+.INCLUDE "soft_uart.asm"
+
+.INCLUDE "grbl_comunication.asm"
+
+.INCLUDE "usb_comunication.asm"
+
+.INCLUDE "idle.asm"
+.INCLUDE "connected.asm"
+.INCLUDE "running.asm"
+.INCLUDE "error.asm"

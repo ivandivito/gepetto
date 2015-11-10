@@ -1,6 +1,5 @@
 .IFNDEF BUFFER_INC
 .EQU BUFFER_INC = 0
-.INCLUDE "gepetto.inc"
 
 /*
 

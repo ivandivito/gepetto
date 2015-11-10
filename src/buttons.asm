@@ -1,5 +1,3 @@
-.INCLUDE "gepetto.inc"
-
 .EQU BUTTONS_THRESHOLD = 400 ;Umbral de tiempo para reconocer un boton. El valor es BUTTONS_THRESHOLD*prescaler/f_clock
 
 .EQU BUTTONS_DDR = DDRD
@@ -75,7 +73,7 @@ BUTTONS_READ:
 		
 		BREQ BUTTONS_EXIT ;Si se da, guardar como activos
 		
-			STS BAR, TEMP_1 ;  Guardar como botones activos
+			STS BAR, TEMP_3 ;  Guardar como botones activos
 			
 			;Tomar timestap
 			LDS TEMP_1, TCNT1L
@@ -92,6 +90,11 @@ BUTTONS_READ:
 	
 	BUTTONS_CHECK_TIME:
 	
+		IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
+		ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
+		
+		STS BLMR, TEMP_3 ;Guardar como ultima medicion
+
 		;Tomar tiempo
 		LDS TEMP_1, TCNT1L
 		LDS TEMP_2, TCNT1H
@@ -112,15 +115,12 @@ BUTTONS_READ:
 		CP TEMP_1, TEMP_3
 		CPC TEMP_2, TEMP_4
 		
-		IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
-		ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
-		
-		STS BLMR, TEMP_3 ;Guardar como ultima medicion
-		
 		BRLO BUTTONS_TIME_NOT_COMPLETED; Si es menor continuar
 			
 			STS BAR, ZERO_REG ; Limpiar botones activos
 			
+			LDS TEMP_3, BLMR
+
 			AND ACTIVE_REG, TEMP_3 ;Condicionar con los leidos inicialmente
 			MOV RESULT_REG, ACTIVE_REG ;Mover al registro de resultado
 			
