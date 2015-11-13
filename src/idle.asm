@@ -39,10 +39,11 @@ IDLE_RUN:
 	
 	IDLE_USB_CONTINUE:
 	
+
+	;Procesar botones
 	.DEF GGR_REG = R11
 	.DEF BUTTONS_REG = R10
 	
-	;Procesar botones
 	CALL BUTTONS_READ
 	MOV BUTTONS_REG, R16
 	

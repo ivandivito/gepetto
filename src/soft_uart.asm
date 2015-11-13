@@ -9,6 +9,7 @@
 .EQU SOFT_UART_ISC1 = ISC11
 
 .EQU SOFT_UART_INT = INT1
+.EQU SOFT_UART_INTF = INTF1
 
 .EQU SOFT_UART_TX = 4
 .EQU SOFT_UART_RX = 3
@@ -82,7 +83,8 @@ SOFT_UART_INIT:
 	CBI SOFT_UART_RX_DDR, SOFT_UART_RX ;Configurar RX como entrada
 
 	LDS TEMP, EICRA
-	ANDI TEMP, ~((1<<SOFT_UART_ISC0)|(1<<SOFT_UART_ISC1))
+	ANDI TEMP, ~(1<<SOFT_UART_ISC0)
+	ORI TEMP, (1<<SOFT_UART_ISC1)
 	STS EICRA, TEMP ;Habilitar interrupcion en nivel bajo
 
 	SBI SOFT_UART_TX_PORT, SOFT_UART_TX ;Poner en alto la salida
@@ -203,7 +205,7 @@ SOFT_UART_INTERRUPT:
 
 	RCALL SOFT_UART_READ_BIT
 	
-	BRCC SOFT_UART_READ_EXIT ;Si el bit de start no es zero, salir
+	BRCS SOFT_UART_READ_EXIT ;Si el bit de start no es zero, salir
 		
 		LDI BITS_READ, 8
 		CLR RESULT
@@ -245,6 +247,9 @@ SOFT_UART_INTERRUPT:
 		OUT SOFT_UART_TCNT, ZERO_REG ;Limpia el timer
 		
 	SOFT_UART_READ_END:
+	
+	;Limpiar flag de nuevos flancos
+	SBI EIFR, SOFT_UART_INTF
 	
 	POP BITS_READ
 	POP RESULT

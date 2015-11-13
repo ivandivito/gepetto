@@ -12,7 +12,7 @@ GGR: .BYTE 1; Gepetto General Register (- - - - - CSS(Conected Substate) UC(USB 
 .ORG 0x00
 	JMP MAIN
 
-.ORG INT0addr
+.ORG INT1addr
 	JMP SOFT_UART_INTERRUPT
 
 .ORG URXCaddr
