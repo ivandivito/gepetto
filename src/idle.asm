@@ -35,7 +35,7 @@ IDLE_RUN:
 	CPI TEMP_1, '\n'
 	BRNE IDLE_USB_CONTINUE
 	
-		;Procesar linea de USB
+		RCALL IDLE_USB_PROCESS_LINE
 	
 	IDLE_USB_CONTINUE:
 	
@@ -94,6 +94,8 @@ IDLE_GRBL_PROCESS_LINE:
 
 ;Subrutina para procesar una linea de GRBL
 
+.DEF TEMP = R16
+
 IDLE_USB_PROCESS_LINE:
 	
 	;Comparar con error
@@ -107,11 +109,26 @@ IDLE_USB_PROCESS_LINE:
 	CALL STRING_COMPARE_P
 
 	BREQ IDLE_USB_PROCESS_CONTINUE
-
 		
+		;Setear flag de conección
+		LDS TEMP, GGR
+		ORI TEMP, (1<<UC)
+		STS GGR, TEMP
 
 	IDLE_USB_PROCESS_CONTINUE:
-
+	
+	CALL USB_CHECK_TIMEOUT
+	
+	BREQ USB_NO_TIMEOUT
+		
+		;Setear flag de conección
+		LDS TEMP, GGR
+		ANDI TEMP, ~(1<<UC)
+		STS GGR, TEMP
+		
+	USB_NO_TIMEOUT:
+	
 	BUFFER_CLEAR USB_BUFFER_POINTER
 
 	RET
+	

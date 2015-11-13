@@ -1,10 +1,11 @@
 .INCLUDE "gepetto.inc"
 
 .EQU UIS = 0
+.EQU UC = 1
 
 .DSEG
 CURRENT_STATE: .BYTE 1
-GGR: .BYTE 1; Gepetto General Register (- - - - - - - UIS(UI state))
+GGR: .BYTE 1; Gepetto General Register (- - - - - - UC(USB Connected) UIS(UI State))
 
 .CSEG
 .ORG 0x00

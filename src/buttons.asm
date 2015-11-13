@@ -99,9 +99,13 @@ BUTTONS_READ:
 		LDS TEMP_1, TCNT1L
 		LDS TEMP_2, TCNT1H
 		
+		
+		CLI ;Operación atomica
 		;Cargar timestamp
 		LDS TEMP_3, BTRL
 		LDS TEMP_4, BTRH
+		
+		SEI ;Fin operación atomica
 		
 		;Restar tiempo y timestamp
 		SUB TEMP_1, TEMP_3

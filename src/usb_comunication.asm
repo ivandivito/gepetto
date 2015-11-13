@@ -1,10 +1,13 @@
 
 .EQU UART_UBRR = 103 ; 9600
 
+.EQU UART_CONNECTION_TIMEOUT = 16000 ; ciclos de timer1
+
 .DSEG
 USB_BUFFER: .BYTE BUFFER_SIZE
 USB_BUFFER_POINTER: .BYTE 1
-
+ULCTL: .BYTE 1 ;USB Last Connection Timestamp Low
+ULCTH: .BYTE 1 ;USB Last Connection Timestamp high
 
 .CSEG
 
@@ -96,9 +99,65 @@ USB_INTERRUPT:
 	
 	BUFFER_INSERT_CHAR USB_BUFFER, USB_BUFFER_POINTER
 	
+	;Tomar timestap
+	LDS R16, TCNT1L
+	LDS R17, TCNT1H
+	
+	;Guardar timestamp
+	STS ULCTL ,R16
+	STS ULCTH, R17
+	
 	POP YH
 	POP YL
 	POP R17
 	POP R16
 	RETI
+	
+;Subrutina para verificar si se desconecto el usb. Devuelve 1 en R16 si hay timeout, 0 sino.
+	
+.DEF TEMP_1 = R14
+.DEF TEMP_2 = R15
+.DEF TEMP_3 = R16
+.DEF TEMP_4 = R17
 
+.DEF RESULT = R16
+
+USB_CHECK_TIMEOUT:
+	
+	;Tomar timestap
+	LDS TEMP_1, TCNT1L
+	LDS TEMP_2, TCNT1H
+	
+	CLI ;Operación atomica
+	;Cargar ultima coneccion
+	LDS TEMP_3, ULCTL
+	LDS TEMP_4, ULCTH
+	SEI ;Fin operación atomica
+	
+	;Restar
+	SUB TEMP_1, TEMP_3
+	SBC TEMP_2, TEMP_4
+	
+	;Si el tiempo actual es menor hubo overflow, devolver falso
+	BRLO USB_CHECK_TIMEOUT_FALSE
+		
+		;Cargar timeout
+		LDI TEMP_3, LOW(UART_CONNECTION_TIMEOUT)
+		LDI TEMP_4, HIGH(UART_CONNECTION_TIMEOUT)
+		
+		;Comparar tiempo desde ultima coneccion
+		CP TEMP_1, TEMP_3
+		CPC TEMP_2, TEMP_4
+		
+		;Si es menor devolver falso
+		BRLO USB_CHECK_TIMEOUT_FALSE
+			
+			LDI RESULT, 0x01
+			
+			RET
+			
+	USB_CHECK_TIMEOUT_FALSE:
+		
+		CLR RESULT
+	
+	RET
