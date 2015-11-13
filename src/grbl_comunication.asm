@@ -10,6 +10,14 @@ GRBL_BUFFER_POINTER: .BYTE 1
 
 .CSEG
 
+;Constantes
+
+GRBL_OK:
+.DB "ok", 0x00
+
+GRBL_ERROR:
+.DB "error", 0x00
+
 ;Subrutina para inicializar el soft UART para conectar con GRBL
 .DEF TEMP = R16
 

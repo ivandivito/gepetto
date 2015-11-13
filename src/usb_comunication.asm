@@ -8,6 +8,10 @@ USB_BUFFER_POINTER: .BYTE 1
 
 .CSEG
 
+;Constantes
+USB_TICK:
+.DB "TICK\n", 0x00
+
 ;Subrutina para inicializar el UART para conectar el USB
 .DEF  TEMP = R16
 

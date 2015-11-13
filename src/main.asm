@@ -30,7 +30,7 @@ MAIN:
 	
 	LDI R16, LOW(RAMEND)
 	OUT SPL, R16
-	LDI R16, HIGH(RAMEND)
+ 	LDI R16, HIGH(RAMEND)
 	OUT SPH, R16
 	
 	LDI R16, STATE_IDLE
@@ -89,6 +89,8 @@ MAIN_LOOP:
 		RJMP MAIN_LOOP
 
 .INCLUDE "buffer.inc"
+
+.INCLUDE "string.asm"
 
 .INCLUDE "buttons.asm"
 
