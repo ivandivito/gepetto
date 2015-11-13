@@ -2,10 +2,11 @@
 
 .EQU UIS = 0
 .EQU UC = 1
+.EQU CSS = 2 ;0: Renviar datos a GRBL, 1: Guardar datos en SD
 
 .DSEG
 CURRENT_STATE: .BYTE 1
-GGR: .BYTE 1; Gepetto General Register (- - - - - - UC(USB Connected) UIS(UI State))
+GGR: .BYTE 1; Gepetto General Register (- - - - - CSS(Conected Substate) UC(USB Connected) UIS(UI State))
 
 .CSEG
 .ORG 0x00

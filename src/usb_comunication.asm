@@ -52,17 +52,17 @@ USB_SEND_CHAR:
 	
 	RET
 	
-;Subrutina para enviar una cadena de caracteres en memoria de datos. El string es apuntado por X y temina en cero
+;Subrutina para enviar una linea en memoria de datos. El string es apuntado por X y temina en '\n'
 .DEF CHAR_REG = R16
 
-USB_SEND_D_STRING:
+USB_SEND_D_LINE:
 	PUSH XL
 	PUSH XH
 	
 	USB_SEND_D_STRING_LOOP:
 		LD CHAR_REG, X+
 		RCALL USB_SEND_CHAR
-		TST CHAR_REG ;Analizar si cambiar a cadena terminada en \n
+		CPI CHAR_REG, '\n'
 		BRNE USB_SEND_D_STRING_LOOP
 	
 	POP XH
@@ -70,17 +70,17 @@ USB_SEND_D_STRING:
 	
 	RET
 	
-;Subrutina para enviar una cadena de caracteres en memoria de programa. El string es apuntado por Z y temina en cero
+;Subrutina para enviar una linea en memoria de programa. El string es apuntado por Z y temina en '\n'
 .DEF CHAR_REG = R16
 
-USB_SEND_P_STRING:
+USB_SEND_P_LINE:
 	PUSH ZL
 	PUSH ZH
 	
 	USB_SEND_P_STRING_LOOP:
 		LPM CHAR_REG, Z+
 		RCALL USB_SEND_CHAR
-		TST CHAR_REG ;Analizar si cambiar a cadena terminada en \n
+		CPI CHAR_REG, '\n'
 		BRNE USB_SEND_P_STRING_LOOP
 	
 	POP ZH

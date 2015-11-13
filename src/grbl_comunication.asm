@@ -40,10 +40,10 @@ GRBL_SEND_CHAR:
 	CALL SOFT_UART_SEND_BYTE
 	RET
 
-;Subrutina para enviar una cadena de caracteres en memoria de datos. El string es apuntado por X y temina en cero
+;Subrutina para enviar una linea en memoria de datos. El string es apuntado por X y temina en '\n'
 .DEF CHAR_REG = R16
 
-GRBL_SEND_D_STRING:
+GRBL_SEND_D_LINE:
 	PUSH XL
 	PUSH XH
 	
@@ -51,7 +51,7 @@ GRBL_SEND_D_STRING:
 		LD CHAR_REG, X+
 		STS SUODR, CHAR_REG
 		CALL SOFT_UART_SEND_BYTE
-		TST CHAR_REG ;Analizar si cambiar a cadena terminada en \n
+		CPI CHAR_REG, '\n'
 		BRNE GRBL_SEND_D_STRING_LOOP
 	
 	POP XH
@@ -59,10 +59,10 @@ GRBL_SEND_D_STRING:
 	
 	RET
 	
-;Subrutina para enviar una cadena de caracteres en memoria de programa. El string es apuntado por Z y temina en cero
+;Subrutina para enviar una linea en memoria de programa. El string es apuntado por Z y temina en '\n'
 .DEF CHAR_REG = R16
 
-GRBL_SEND_P_STRING:
+GRBL_SEND_P_LINE:
 	PUSH ZL
 	PUSH ZH
 	
@@ -70,7 +70,7 @@ GRBL_SEND_P_STRING:
 		LPM CHAR_REG, Z+
 		STS SUODR, CHAR_REG
 		CALL SOFT_UART_SEND_BYTE
-		TST CHAR_REG ;Analizar si cambiar a cadena terminada en \n
+		CPI CHAR_REG, '\n'
 		BRNE GRBL_SEND_P_STRING_LOOP
 	
 	POP ZH

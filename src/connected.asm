@@ -1,13 +1,119 @@
 
 .CSEG
 
+.DEF TEMP_1 = R16
+.DEF TEMP_2 = R17
+
 CONNECTED_RUN:
-	
-	;Procesar botones
-	
-	;Procesar buffer USB (guardar o ejecutar)
 	
 	;Procesar buffer GRBL
 	
+	;Verificar si termina en \n
+	POINT_Y_TO_END_OF_BUFFER GRBL_BUFFER, GRBL_BUFFER_POINTER
+	
+	LD TEMP_1, Y
+	
+	CPI TEMP_1, '\n'
+	BRNE CONNECTED_GRBL_CONTINUE
+		
+		RCALL CONNECTED_GRBL_PROCESS_LINE
+	
+	CONNECTED_GRBL_CONTINUE:
+	
+	;Si hay cambio de estado terminar
+	LDS TEMP_1, CURRENT_STATE
+	CPI TEMP_1, STATE_CONNECTED
+	BRNE CONNECTED_END
+	
+	;Procesar buffer USB (guardar o ejecutar)
+	
+	;Procesar botones
+	
 	;Actualizar UI
+	
+	CONNECTED_END:
+	
+	RET
+
+	
+;Subrutina para procesar una linea de GRBL
+;Que hacer cuando hay un error aca? enviar a la PC? Cancelar coneccion? Ir a STATE_ERROR?
+
+.DEF TEMP_1 = R16
+.DEF TEMP_2 = R17
+
+CONNECTED_GRBL_PROCESS_LINE:
+	
+	LDS TEMP_1, GGR
+	ANDI TEMP_1, (1<<CSS) ;Verificar sub estado
+	BRNE CONNECTED_GRBL_SAVING
+	
+		PUSH XL
+		PUSH XH
+		
+		LDI XL, LOW(GRBL_BUFFER)
+		LDI XH, HIGH(GRBL_BUFFER)
+		
+		CALL USB_SEND_D_STRING
+		
+		POP XH
+		POP XL
+	
+		RJMP CONNECTED_GRBL_PROCESS_LINE_END
+	CONNECTED_GRBL_SAVING: 
+	
+		;A definir
+	
+	CONNECTED_GRBL_PROCESS_LINE_END:
+	
+	BUFFER_CLEAR GRBL_BUFFER_POINTER
+
+	RET
+	
+;Subrutina para procesar una linea de GRBL
+
+.DEF TEMP = R16
+
+CONNECTED_USB_PROCESS_LINE:
+	
+	LDS TEMP, GGR
+	ANDI TEMP, (1<<CSS) ;Verificar sub estado
+	BRNE CONNECTED_USB_SAVING
+	
+		PUSH XL
+		PUSH XH
+		
+		LDI XL, LOW(USB_BUFFER)
+		LDI XH, HIGH(USB_BUFFER)
+		
+		CALL GRBL_SEND_D_STRING
+		
+		POP XH
+		POP XL
+	
+		RJMP CONNECTED_GRBL_PROCESS_LINE_END
+	CONNECTED_GRBL_SAVING: 
+	
+		;A definir
+	
+	CONNECTED_GRBL_PROCESS_LINE_END:
+
+	
+	CALL USB_CHECK_TIMEOUT
+	
+	BREQ CONNECTED_USB_NO_TIMEOUT
+		
+		;Setear flag de conección
+		LDS TEMP, GGR
+		ANDI TEMP, ~(1<<UC)
+		STS GGR, TEMP
+		
+		;Ir a IDLE
+		LDI TEMP, STATE_IDLE
+		STS CURRENT_STATE, TEMP
+		
+	CONNECTED_USB_NO_TIMEOUT:
+	
+	BUFFER_CLEAR USB_BUFFER_POINTER
+
 	RET
