@@ -1,4 +1,7 @@
 
+.EQU RXD = 0
+.EQU TXD = 1
+
 .EQU UART_UBRR = 103 ; 9600
 
 .EQU UART_CONNECTION_TIMEOUT = 16000 ; ciclos de timer1
@@ -24,8 +27,8 @@ USB_INIT:
 
 	;Configurar pines
 
-	CBI DDRD,0
-	SBI DDRD,1
+	CBI DDRD,RXD
+	SBI DDRD,TXD
 	
 	;Setear baud rate
 	LDI TEMP, LOW(UART_UBRR)
