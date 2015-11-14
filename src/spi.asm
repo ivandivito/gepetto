@@ -1,5 +1,5 @@
 
-.INCLUDE "gepetto.inc"
+.INCLUDE "spi.inc"
 
 .EQU SPI_DDR = DDRB
 .EQU SPI_PORT = PORTB
@@ -146,6 +146,11 @@ SPI_SD_RX_BLOCK: ; SPI_SD_RX_BLOCK_INDEX_REG tiene que tener el indice del bloqu
 
 		CPI SPI_SD_CMD_RSP_REG,SD_CMD_RSP_NOT_IDLE
 		BRNE SPI_SD_READ_BLOCK_DIREC_LOOP
+
+		;debug
+	SBI DDRC,3
+	CBI PORTC,3
+	;debug
 
 	SPI_SD_READ_BLOCK_START_LOOP: ;espero a que empieze a mandar datos
 		LDI SPI_INC_TEMP,SD_CMD_RSP_START

@@ -19,8 +19,13 @@ USB_TICK:
 .DEF  TEMP = R16
 
 USB_INIT:
-	
+
 	BUFFER_CLEAR USB_BUFFER_POINTER
+
+	;Configurar pines
+
+	CBI DDRD,0
+	SBI DDRD,1
 	
 	;Setear baud rate
 	LDI TEMP, LOW(UART_UBRR)
@@ -35,7 +40,7 @@ USB_INIT:
 	;Habilitar envio, recepcion e interrupciones
 	LDI TEMP, (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0)
 	STS UCSR0B, TEMP
-	
+
 	RET
 
 ;Subrutina para enviar un caracter por USB

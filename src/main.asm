@@ -38,8 +38,19 @@ MAIN:
 	LDI R16, STATE_IDLE
 	STS CURRENT_STATE, R16
 
+	;debug
+	SBI DDRC,3
+	CBI PORTC,3
+	;debug
+	;debug
+	SBI DDRC,2
+	CBI PORTC,2
+	;debug
+	
+
 	CALL BUTTONS_TIMER_INIT
 	CALL BUTTONS_INIT
+
 	
 	;Inicializacion SOFTUART (Micro interprete)
 	
@@ -50,6 +61,10 @@ MAIN:
 	CALL USB_INIT
 	
 	;Inicializacion SPI (SD)
+
+	;CALL SPI_INIT
+	;creo que aca se nesesita un delay de 10ms
+	;CALL SPI_SD_INIT
 	
 	SEI
 	
