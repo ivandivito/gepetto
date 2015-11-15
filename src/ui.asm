@@ -4,6 +4,9 @@
 
 .CSEG
 
+UI_TEXT: .DB "Gepetto", 0
+
+
 UI_INIT:
 	
 	;Delay 20ms
@@ -68,7 +71,7 @@ UI_FULL_INIT:
 	
 	RCALL UI_WAIT_LCD_READY
 	
-	LDI TEMP, 0x0F ;Display on, cursor on, blink on
+	LDI TEMP, 0x0C ;Display on, cursor off, blink off
 	CALL LCD_SEND_BYTE
 	
 	RCALL UI_WAIT_LCD_READY
@@ -82,38 +85,14 @@ UI_FULL_INIT:
 	CALL LCD_SEND_BYTE
 	
 
-	LDI R16, 'I'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'V'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'A'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'N'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, ' '
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'P'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'U'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'T'
-	CALL UI_WRITE_CHAR
-
-	LDI R16, 'O'
-	CALL UI_WRITE_CHAR
-
+	LDI ZL, LOW(UI_TEXT<<1)
+	LDI ZH, HIGH(UI_TEXT<<1)
+	CALL UI_WRITE_P_STRING
 
 	RET
 
 
-;Esperar a que el LCD este listo
+;Subrutina que espera a que el LCD este listo
 
 .DEF READ_REG = R16
 	
@@ -127,8 +106,9 @@ UI_WAIT_LCD_READY:
 
 	RET
 
-	
-	
+
+;Subrutina para enviar un caracter al LCD	
+
 .DEF CHAR_REG = R16
 	
 UI_WRITE_CHAR:
@@ -143,4 +123,26 @@ UI_WRITE_CHAR:
 	
 	RET
 
+;Subrutina para enviar un String al LCD. El string es apuntado por Z y termina en 0
+
+.DEF CHAR_REG = R16
+
+UI_WRITE_P_STRING:
+	PUSH ZL
+	PUSH ZH
+
+	UI_WRITE_P_STRING_LOOP:
+		LPM CHAR_REG, Z+
+		TST CHAR_REG
+		BREQ UI_WRITE_P_STRING_LOOP_BREAK
+
+		RCALL UI_WRITE_CHAR
+		
+		RJMP UI_WRITE_P_STRING
+
+	UI_WRITE_P_STRING_LOOP_BREAK:
+
+	POP ZH
+	POP ZL
+	RET
 	
