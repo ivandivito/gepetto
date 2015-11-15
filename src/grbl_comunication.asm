@@ -79,19 +79,28 @@ GRBL_SEND_P_LINE:
 	RET
 
 ;Interrupcion de arribo de un dato. Se guardan en stack todos los registros usados por la macro BUFFER_INSERT_CHAR
+
+.DEF SREG_REG = R10
+
 GRBL_INTERRUPT:
+	PUSH SREG_REG
 	PUSH R16
 	PUSH R17
 	PUSH YL
 	PUSH YH
 	
+	IN SREG_REG, SREG
+	
 	LDS R16, SUIDR
 	
 	BUFFER_INSERT_CHAR USB_BUFFER, USB_BUFFER_POINTER
+	
+	OUT SREG, SREG_REG
 	
 	POP YH
 	POP YL
 	POP R17
 	POP R16
+	POP SREG_REG
 	RET
 	

@@ -1,0 +1,56 @@
+
+.EQU TIMER_PRESCALER = 0b00000101
+
+
+
+.DSEG
+ETCNT1L: .BYTE 1 ;Extended Timer Counter 1 Low
+ETCNT1H: .BYTE 1 ;Extended Timer Counter 1 High
+
+.CSEG
+
+.DEF TEMP = R16
+
+TIMER_INIT:
+	
+	LDS TEMP, TIMSK1
+	ORI TEMP, (1<<TOIE1)
+	STS TIMSK1, TEMP ;Habilitar interrupción de overflow
+	
+	STS TCCR1A, ZERO_REG
+	LDI TEMP, TIMER_PRESCALER ; Configurar prescaler y comenzar a contar
+	STS TCCR1B, TEMP
+	
+	RET
+	
+
+.DEF SREG_REG = R10
+	
+TIMER_OVERFLOW_INTERRUPT:
+	PUSH ZERO_REG
+	PUSH SREG_REG
+	PUSH R16
+	PUSH R17
+	PUSH R18
+	
+	IN SREG_REG, SREG ;Preservar registro de estado
+	CLR ZERO_REG
+	
+	LDS R16, ETCNT1L ;Obtener registros extendidos
+	LDS R17, ETCNT1H
+	
+	LDI R18, 1
+	ADD R16, R18 ;Incrementar
+	ADC R17, ZERO_REG
+	
+	STS ETCNT1L, R16
+	STS ETCNT1H, R17
+	
+	OUT SREG, SREG_REG
+	
+	POP R18
+	POP R17
+	POP R16
+	POP SREG_REG
+	POP ZERO_REG
+	RETI
