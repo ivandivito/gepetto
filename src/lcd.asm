@@ -1,4 +1,5 @@
-EQU LCD_DDR_E = DDRB
+
+.EQU LCD_DDR_E = DDRB
 .EQU LCD_PORT_E = PORTB
 .EQU LCD_DDR = DDRC
 .EQU LCD_PORT = PORTC
@@ -12,6 +13,10 @@ EQU LCD_DDR_E = DDRB
 .EQU LCD_BF = 7 ;Busy Flag
 
 .DEF TEMP = R16
+
+.CSEG
+
+;Incializa los pines del LCD
 
 LCD_INIT:
 	
@@ -27,9 +32,12 @@ LCD_INIT:
 LCD_ENABLE_PULSE:
 	
 	SBI LCD_PORT_E, LCD_E
-	
-	;Delay de ancho de pulso
-	CALL LCD_DELAY_2MICRO
+
+	;Delay 450ns => A 16MHz son 8 ciclos
+	PUSH R18
+	POP R18
+	PUSH R18
+	POP R18
 	
 	CBI LCD_PORT_E, LCD_E ;Flanco descendente
 	
@@ -98,7 +106,13 @@ LCD_SEND_BYTE:
 	
 	RCALL LCD_ENABLE_PULSE ;Enviar flanco de enable
 	
-	;Delay para no causar overhead en el LCD
+	;Delay entre enables de 1000ns => A 16MHz son 16 ciclos
+	PUSH R18
+	POP R18
+	PUSH R18
+	POP R18
+	PUSH R18
+	POP R18 ;12 ciclos
 	
 	MOV TEMP, BYTE_REG
 	ANDI TEMP, 0x0F ;Nibble bajo
@@ -116,7 +130,7 @@ LCD_SEND_BYTE:
 	POP PORT_REG
 	RET
 
-;Subrutina para leer un byte al LCD. El byte esta en el registro R16
+;Subrutina para leer un byte del LCD. El byte esta en el registro R16
 
 .DEF BYTE_REG = R16
 .DEF TEMP = R17
@@ -130,10 +144,17 @@ LCD_READ_BYTE:
 	
 	SBI LCD_PORT, LCD_RW ;Setear para leer
 	
+	;Delay 60ns => A 16MHz son 2 ciclos
+	NOP
+	NOP
+
 	SBI LCD_PORT_E, LCD_E
 	
-	;Delay para que el LCD escriba
-	CALL LCD_DELAY_2MICRO
+	;Delay 360ns => A 16MHz son 6 ciclos
+	PUSH R18
+	POP R18
+	PUSH R18
+	POP R18
 	
 	IN TEMP, LCD_PIN ;Leer pines
 	ANDI TEMP, LCD_DATA_MASK ;Obtener bits de datos
@@ -142,13 +163,20 @@ LCD_READ_BYTE:
 	
 	CBI LCD_PORT_E, LCD_E
 	
-	;Delay entre Nibbles
-	CALL LCD_DELAY_2MICRO
+	;Delay entre flancos descendentes de enables de 1000ns => A 16MHz son 16 ciclos
+	PUSH R18
+	POP R18
+	PUSH R18
+	POP R18 ;8 ciclos
+
 	
 	SBI LCD_PORT_E, LCD_E
 	
-	;Delay para que el LCD escriba
-	CALL LCD_DELAY_2MICRO
+	;Delay 360ns => A 16MHz son 6 ciclos
+	PUSH R18
+	POP R18
+	PUSH R18
+	POP R18
 	
 	IN TEMP, LCD_PIN ;Leer pines
 	ANDI TEMP, LCD_DATA_MASK ;Obtener bits de datos
@@ -156,21 +184,4 @@ LCD_READ_BYTE:
 	
 	CBI LCD_PORT_E, LCD_E
 	
-	RET
-	
-LCD_DELAY_2MICRO: ;100 us
-	PUSH R18
-	PUSH R19
-
-	LDI R18, 21
-	LDI R19, 3
-	LCD_ENABLE_LOOP:
-	DEC R18
-	BRNE LCD_ENABLE_LOOP
-	DEC R19
-	BRNE LCD_ENABLE_LOOP
-
-
-	POP R19
-	POP R18
 	RET
