@@ -45,34 +45,39 @@ IDLE_RUN:
 	.DEF BUTTONS_REG = R10
 	
 	CALL BUTTONS_READ
-	MOV BUTTONS_REG, R16
+	MOV BUTTONS_REG, TEMP_1
 	
 	LDS GGR_REG, GGR
 	
-	ANDI R16, (1<<BUTTONS_CHANGE) ; Si es el boton de cambiar
+	ANDI TEMP_1, (1<<BUTTONS_CHANGE) ; Si es el boton de cambiar
 	BREQ IDLE_TEST_CONFIRM
-	MOV R17, GGR_REG
-	ANDI R17, (1<<UC) ;Si hay conneccion
-	BREQ IDLE_TEST_CONFIRM
+	;MOV TEMP_2, GGR_REG
+	;ANDI TEMP_2, (1<<UC) ;Si hay conneccion
+	;BREQ IDLE_TEST_CONFIRM
 	
-		LDI R16, (1<<UIS)
-		EOR R11, R16 ;Invertir estado de UI
-		STS GGR, R11 ;Guardar
+		LDI TEMP_1, (1<<UIS)
+		EOR GGR_REG, TEMP_1 ;Invertir estado de UI
+		LDI TEMP_1, (1<<UII)
+		OR GGR_REG, TEMP_1 ;Invalidar UI
+		STS GGR, GGR_REG ;Guardar
 		
 		RJMP IDLE_BUTTONS_CONTINUE
 	IDLE_TEST_CONFIRM:
 	
-	MOV R16, BUTTONS_REG
-	ANDI R16, (1<<BUTTONS_CHANGE) ; Si es el boton de confirmar
+	MOV TEMP_1, BUTTONS_REG
+	ANDI TEMP_1, (1<<BUTTONS_CHANGE) ; Si es el boton de confirmar
 	BREQ IDLE_BUTTONS_CONTINUE
 		
-		MOV R17, GGR_REG
-		ANDI R17, (1<<UIS) ;Verificar estado
+		MOV TEMP_2, GGR_REG
+		ANDI TEMP_2, (1<<UIS) ;Verificar estado
 		BREQ IDLE_GO_TO_RUNNING
-			
-			LDI R17, STATE_CONNECTED ;Ir a STATE_CONNECTED
+			/*
+			LDI TEMP_2, STATE_CONNECTED ;Ir a STATE_CONNECTED
 			STS CURRENT_STATE, R17
-			
+			LDI TEMP_1, (1<<UII)
+			OR GGR_REG, TEMP_1 ;Invalidar UI
+			STS GGR, GGR_REG ;Guardar
+			*/
 			RJMP IDLE_END
 			
 		IDLE_GO_TO_RUNNING:
@@ -81,7 +86,10 @@ IDLE_RUN:
 	IDLE_BUTTONS_CONTINUE:
 	
 	;Actualizar UI
-	
+	LDS TEMP_1, GGR
+	ANDI TEMP_1, (1<<UII)
+	BREQ IDLE_END ;Verificar si la interfaz esta invalida
+		RCALL IDLE_REFRESH_UI
 	IDLE_END:
 
 	RET
@@ -152,4 +160,45 @@ IDLE_USB_PROCESS_LINE:
 	BUFFER_CLEAR USB_BUFFER_POINTER
 
 	RET
-	
+
+
+;Subrutina para refrescar la interfaz a partir del estado del sistema
+
+.DEF TEMP = R16
+.DEF GGR_REG = R18
+
+IDLE_REFRESH_UI:
+	PUSH GGR_REG
+	PUSH ZL
+	PUSH ZH
+
+	LDI ZL, LOW(CONSTANT_IDLE_TITLE<<1)
+	LDI ZH, HIGH(CONSTANT_IDLE_TITLE<<1)
+	CALL UI_WRITE_FIRST_LINE_P_STRING ;Escribir titulo
+
+	LDS GGR_REG, GGR ;Cargar registro de flags
+
+	MOV TEMP, GGR_REG
+	ANDI TEMP, (1<<UIS) ;Verificar estado de interfaz
+	BREQ IDLE_UI_RUNNING
+		
+		LDI ZL, LOW(CONSTANT_IDLE_CONNECT<<1)
+		LDI ZH, HIGH(CONSTANT_IDLE_CONNECT<<1)
+		CALL UI_WRITE_SECOND_LINE_P_STRING ;Escribir primera linea
+		
+		RJMP IDLE_UI_END
+	IDLE_UI_RUNNING:
+
+		LDI ZL, LOW(CONSTANT_IDLE_RUN<<1)
+		LDI ZH, HIGH(CONSTANT_IDLE_RUN<<1)
+		CALL UI_WRITE_SECOND_LINE_P_STRING ;Escribir primera linea
+		
+	IDLE_UI_END:
+
+	ANDI GGR_REG, ~(1<<UII) ;Limpiar flag de invalido
+	STS GGR, GGR_REG
+
+	POP ZH
+	POP ZL
+	POP GGR_REG
+	RET

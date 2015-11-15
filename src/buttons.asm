@@ -1,6 +1,7 @@
 .EQU BUTTONS_THRESHOLD = 400 ;Umbral de tiempo para reconocer un boton. El valor es BUTTONS_THRESHOLD*prescaler/f_clock
 
 .EQU BUTTONS_DDR = DDRD
+.EQU BUTTONS_PORT = PORTD
 .EQU BUTTONS_PIN = PIND
 
 .EQU BUTTONS_SELECT = 6
@@ -27,6 +28,10 @@ BUTTONS_INIT:
 	ANDI TEMP, ~((1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE)) ;Configurar como entrada los botones
 	OUT BUTTONS_DDR, TEMP
 	
+	IN TEMP, BUTTONS_PORT
+	ORI TEMP, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Configurar resistencias de pull up
+	OUT BUTTONS_PORT, TEMP
+
 	RET
 
 	
@@ -63,12 +68,13 @@ BUTTONS_READ:
 		
 		LDS TEMP_2, BLMR ;Obtener ultima medicion
 		COM TEMP_2 ;Complementar
-		
+
 		IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
+		COM TEMP_3 ;Complementar (normal alto)
 		ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
 		
 		STS BLMR, TEMP_3 ;Guardar como ultima medicion
-		
+
 		AND TEMP_3, TEMP_2 ;Verifcar botones que no estaban apretados y ahora si
 		
 		BREQ BUTTONS_EXIT ;Si se da, guardar como activos
@@ -89,11 +95,6 @@ BUTTONS_READ:
 		RET
 	
 	BUTTONS_CHECK_TIME:
-	
-		IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
-		ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
-		
-		STS BLMR, TEMP_3 ;Guardar como ultima medicion
 
 		;Tomar tiempo
 		LDS TEMP_1, TCNT1L
@@ -123,7 +124,11 @@ BUTTONS_READ:
 			
 			STS BAR, ZERO_REG ; Limpiar botones activos
 			
-			LDS TEMP_3, BLMR
+			IN TEMP_3, BUTTONS_PIN ;Leer los pines de los botones
+			COM TEMP_3 ;Complementar (normal alto)
+			ANDI TEMP_3, (1<<BUTTONS_SELECT) | (1<<BUTTONS_CHANGE) ;Enmascarar botones
+		
+			STS BLMR, TEMP_3 ;Guardar como ultima medicion
 
 			AND ACTIVE_REG, TEMP_3 ;Condicionar con los leidos inicialmente
 			MOV RESULT_REG, ACTIVE_REG ;Mover al registro de resultado

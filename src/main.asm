@@ -1,12 +1,13 @@
 .INCLUDE "gepetto.inc"
 
 .EQU UIS = 0
-.EQU UC = 1
-.EQU CSS = 2 ;0: Renviar datos a GRBL, 1: Guardar datos en SD
+.EQU UII = 1 ;0: Interfaz Valida, 1: Refrescar Interfaz
+.EQU UC = 2
+.EQU CSS = 3 ;0: Renviar datos a GRBL, 1: Guardar datos en SD
 
 .DSEG
 CURRENT_STATE: .BYTE 1
-GGR: .BYTE 1; Gepetto General Register (- - - - - CSS(Conected Substate) UC(USB Connected) UIS(UI State))
+GGR: .BYTE 1; Gepetto General Register (- - - - CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
 
 .CSEG
 .ORG 0x00
@@ -38,20 +39,9 @@ MAIN:
 	LDI R16, STATE_IDLE
 	STS CURRENT_STATE, R16
 
-	;debug
-	SBI DDRC,3
-	CBI PORTC,3
-	;debug
-	;debug
-	SBI DDRC,2
-	CBI PORTC,2
-	;debug
-	
-
 	CALL BUTTONS_TIMER_INIT
 	CALL BUTTONS_INIT
 
-	
 	;Inicializacion SOFTUART (Micro interprete)
 	
 	CALL GRBL_COM_INIT
@@ -66,6 +56,12 @@ MAIN:
 	;creo que aca se nesesita un delay de 10ms
 	;CALL SPI_SD_INIT
 	
+	;Incializar LCD
+	CALL UI_INIT
+
+	LDI R16, (1<<UII)
+	STS GGR, R16
+
 	SEI
 	
 	;Verificar programa guardado
@@ -112,12 +108,19 @@ MAIN_LOOP:
 .INCLUDE "buttons.asm"
 
 .INCLUDE "soft_uart.asm"
-
 .INCLUDE "grbl_comunication.asm"
 
 .INCLUDE "usb_comunication.asm"
+
+.INCLUDE "delay.asm"
+.INCLUDE "lcd.asm"
+.INCLUDE "ui.asm"
 
 .INCLUDE "idle.asm"
 .INCLUDE "connected.asm"
 .INCLUDE "running.asm"
 .INCLUDE "error.asm"
+
+
+.INCLUDE "constants.asm"
+
