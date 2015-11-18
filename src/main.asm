@@ -61,12 +61,15 @@ MAIN:
 	;CALL SPI_SD_INIT
 	
 	;Incializar LCD
+	
+	SEI
+
 	CALL UI_INIT
+
 
 	LDI R16, (1<<UII)
 	STS GGR, R16
 
-	SEI
 	
 	;Verificar programa guardado
 	
