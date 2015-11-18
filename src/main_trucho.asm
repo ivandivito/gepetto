@@ -1,5 +1,9 @@
 .INCLUDE "gepetto.inc"
 
+.DSEG
+
+TEST: .BYTE 16
+
  .CSEG
 .ORG 0x00
 	JMP MAIN
@@ -22,12 +26,8 @@
 	OUT SPH, R16	
 
 	CALL USB_INIT
-	
-	CALL SPI_INIT
-	;creo que aca se nesesita un delay de 10ms
-	CALL SPI_SD_INIT
 
-	
+	CALL SD_INIT
 
 	SEI
 	
@@ -35,30 +35,10 @@
 	
 	;Configurar e inicializar GRBL
 
-	CLR SPI_SD_RX_BLOCK_INDEX_REG
-	LDI XL,LOW(SPI_RX_BUFFER_1)
-	LDI XH,LOW(SPI_RX_BUFFER_1)
+MAIN_LOOP:
 
-	;debug
-	SBI DDRC,2
-	CBI PORTC,2
-	;debug
-
-
-	CALL SPI_SD_RX_BLOCK
-
+	JMP MAIN_LOOP
 	
-	LDI XL,LOW(SPI_RX_BUFFER_1)
-	LDI XH,LOW(SPI_RX_BUFFER_1)
-
-	CALL USB_SEND_D_LINE
-
-	MAIN_LOOP:
-
-		JMP MAIN_LOOP
-
-
-
 	DELAY: ;1 seg delay
 
 		LDI R16, 3
@@ -75,6 +55,8 @@
 		BRNE DELAY_LOOP
 
 		RET
+	
+.INCLUDE "timer.asm"
 
 .INCLUDE "buffer.inc"
 
@@ -83,3 +65,5 @@
 .INCLUDE "usb_comunication.asm"
 
 .INCLUDE "spi.asm"
+
+.INCLUDE "sd_card_comunication.asm"
