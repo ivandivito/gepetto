@@ -130,3 +130,5 @@ MAIN_LOOP:
 
 .INCLUDE "constants.asm"
 
+.INCLUDE "debug.asm"
+

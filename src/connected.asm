@@ -23,8 +23,6 @@ CONNECTED_RUN:
 	
 	;Verificar si hay timeout
 	CALL USB_CHECK_TIMEOUT
-	
-	TST TEMP
 
 	BREQ CONNECTED_USB_NO_TIMEOUT
 		

@@ -5,13 +5,18 @@
 .DEF TEMP_2 = R17
 
 IDLE_RUN:
-	
+
 	;Procesar buffer GRBL
 	
+	;Si esta vacio el buffer continuar
+	LDS TEMP_2, GRBL_BUFFER_POINTER
+	TST TEMP_2
+	BREQ IDLE_GRBL_CONTINUE
+
 	;Verificar si termina en \n
 	POINT_Y_TO_END_OF_BUFFER GRBL_BUFFER, GRBL_BUFFER_POINTER
 	
-	LD TEMP_1, Y
+	LD TEMP_1, -Y ;Decrementar Y en uno
 	
 	CPI TEMP_1, '\n'
 	BRNE IDLE_GRBL_CONTINUE
@@ -26,15 +31,20 @@ IDLE_RUN:
 	BRNE IDLE_END
 
 	;Verificar connección PC
-	
+
+	;Si esta vacio el buffer continuar
+	LDS TEMP_2, USB_BUFFER_POINTER
+	TST TEMP_2
+	BREQ IDLE_USB_CONTINUE
+
 	;Verificar si termina en \n
 	POINT_Y_TO_END_OF_BUFFER USB_BUFFER, USB_BUFFER_POINTER
-	
-	LD TEMP_1, Y
+
+	LD TEMP_1, -Y ;Decrementar Y en uno
 	
 	CPI TEMP_1, '\n'
 	BRNE IDLE_USB_CONTINUE
-	
+		
 		RCALL IDLE_USB_PROCESS_LINE
 	
 	IDLE_USB_CONTINUE:
@@ -126,7 +136,11 @@ IDLE_GRBL_PROCESS_LINE:
 .DEF TEMP = R16
 
 IDLE_USB_PROCESS_LINE:
-	
+	PUSH XL
+	PUSH XH
+	PUSH ZL
+	PUSH ZH
+
 	;Comparar con tick
 
 	LDI XL, LOW(USB_BUFFER)
@@ -159,6 +173,10 @@ IDLE_USB_PROCESS_LINE:
 	
 	BUFFER_CLEAR USB_BUFFER_POINTER
 
+	POP ZH
+	POP ZL
+	POP XH
+	POP XL
 	RET
 
 
@@ -174,6 +192,7 @@ IDLE_REFRESH_UI:
 
 	LDI ZL, LOW(CONSTANT_IDLE_TITLE<<1)
 	LDI ZH, HIGH(CONSTANT_IDLE_TITLE<<1)
+	
 	CALL UI_WRITE_FIRST_LINE_P_STRING ;Escribir titulo
 
 	LDS GGR_REG, GGR ;Cargar registro de flags
