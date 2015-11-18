@@ -145,6 +145,8 @@ R_LOOP:
 
 .INCLUDE "sd_card_comunication.asm"
 
+.INCLUDE "timer.asm"
+
 
 LDI ZL,LOW(UI_TEXT_GEPETTO<<1)
 		LDI ZH,HIGH(UI_TEXT_GEPETTO<<1)

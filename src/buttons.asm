@@ -7,8 +7,6 @@
 .EQU BUTTONS_SELECT = 6
 .EQU BUTTONS_CHANGE = 7
 
-.EQU TIMER_PRESCALER = 0b00000101
-
 .DSEG
 ;Buttons last measurement register
 BLMR: .BYTE 1
@@ -34,17 +32,6 @@ BUTTONS_INIT:
 
 	RET
 
-	
-
-.DEF TEMP = R16
-	
-BUTTONS_TIMER_INIT:
-	
-	STS TCCR1A, ZERO_REG
-	LDI TEMP, TIMER_PRESCALER ; Configurar prescaler y comenzar a contar
-	STS TCCR1B, TEMP
-	
-	RET
 
 ;Subrutina para leer botones, devuelve los botones activos en RESULT_REG
 
