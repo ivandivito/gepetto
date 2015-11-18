@@ -1,4 +1,22 @@
+/*
+uso:
 
+CALL SD_INIT
+
+para escribir una linea (maximo 254 caracteres para que despues entre en el buffer) 
+LDI XL,LOW(TEST)
+LDI XH,HIGH(TEST)
+
+CALL SD_TX_LINE
+
+para leerla
+
+CALL SD_RX_LINE
+LDI XL,LOW(SD_BUFFER)
+LDI XH,HIGH(SD_BUFFER)
+
+tener en cuenta que siempre que se quiera pasar de escritura a lectura o viceversa hay que llamar a CALL SD_END_OP para terminar la opracion actual
+*/
 .INCLUDE "sd_card_comunication.inc"
 
 .DSEG
@@ -16,6 +34,8 @@ SD_INIT:
 
 		PUSH TEMP
 
+		CALL SPI_INIT
+
 		BUFFER_CLEAR SD_BUFFER_POINTER
 
 		;reinicio el indice de la SD
@@ -27,69 +47,56 @@ SD_INIT:
 		;activo la SD
 		CALL SD_SELECT
 		
+		;mando muchos clock vacios apraq que se inicialize
 		LDI TEMP, 100
 	SD_INIT_SD_INIT:
 		CALL SPI_RX
 		DEC TEMP
 		BRNE SD_INIT_SD_INIT
 
+		;reinicio la SD
 		SD_TX_CMD_REP_MACRO GO_IDLE_STATE, 0x00000000, SD_CMD_RSP_IDLE
 
+		;reviso version de la SD
 	SD_INIT_TX_CMD_IF:
 		SD_TX_CMD_MACRO SEND_IF_COND, 0x000001AA, SD_CMD_RSP_IDLE
 
 		CPI SD_TX_CMD_RSP,SD_CMD_RSP_IDLE
-		BREQ SD_INIT_TX_CMD_OP_SD_MATCH
+		;es V2 inicializacion 
+		BREQ SD_INIT_V2
 
 		CPI SD_TX_CMD_RSP,SD_CMD_RSP_INVALID_CMD
-		BREQ SD_INIT_TX_CMD_OP_SD ;si la tajeta no soporta el comando IF (tarjetas viejas) hay que enviar un comando OCR
+		;es V1 inicializacion 
+		BREQ SD_INIT_V1 ;si la tajeta no soporta el comando IF (tarjetas viejas) hay que enviar un comando OCR
 
-	;SD_INIT_TX_CMD_OCR:
-		;SD_TX_CMD_MACRO READ_OCR,0x00000000
-		;CALL SPI_RX
-		;CALL SPI_RX
-		;JMP SD_INIT_TX_CMD_LENGHT
+		;tarjeta no soportada probar de nuevo
+		RJMP SD_INIT_SD_INIT
 
-	;SD_INIT_TX_CMD_APP:
-		;SD_TX_CMD_MACRO APP_CMD, 0x00000000
-		;SD_TX_CMD_MACRO SD_SEND_OP_COND, 0x00000000
-		;ANDI SD_TX_CMD_RSP, 0x01
-		;CPI SD_TX_CMD_RSP, SD_CMD_RSP_NOT_IDLE
-		;BREQ SD_INIT_TX_CMD_APP
-
-		;JMP SD_INIT_TX_CMD_LENGHT
-
-	SD_INIT_TX_CMD_OP_SD_MATCH:
+	SD_INIT_V2:
 		SD_TX_CMD_MACRO APP_CMD,0x00000000
 		SD_TX_CMD_MACRO SD_SEND_OP_COND, 0x40000000
 		CPI SD_TX_CMD_RSP, SD_CMD_RSP_NOT_IDLE
-		BRNE SD_INIT_TX_CMD_OP_SD_MATCH
+		BRNE SD_INIT_V2
 		SD_TX_CMD_MACRO READ_OCR, 0x00000000
 		CALL SPI_RX
 		CALL SPI_RX
 		CALL SPI_RX
-		JMP SD_INIT_TX_CMD_LENGHT
+		RJMP SD_INIT_TX_CMD_LENGHT
 		
 
-	SD_INIT_TX_CMD_OP_SD:
+	SD_INIT_V1:
+		SD_TX_CMD_MACRO APP_CMD,0x00000000
 		SD_TX_CMD_MACRO SD_SEND_OP_COND, 0x00000000
-		CPI SD_TX_CMD_RSP,SD_CMD_RSP_IDLE
-		BREQ SD_INIT_TX_CMD_OP_SD	
-		
 		CPI SD_TX_CMD_RSP,SD_CMD_RSP_NOT_IDLE
-		BREQ SD_INIT_TX_CMD_LENGHT	
-
-	SD_INIT_TX_CMD_OP:
-		SD_TX_CMD_MACRO SEND_OP_COND, 0x00000000
-		CPI SD_TX_CMD_RSP,SD_CMD_RSP_IDLE
-		BREQ SD_INIT_TX_CMD_OP
+		BRNE SD_INIT_V1	
 
 	SD_INIT_TX_CMD_LENGHT:
+		;si la sd es de sectores variables con eso elijo 512
 		SD_TX_CMD_MACRO SET_BLOCK_LEN, 0x00000200
 
 		CALL SD_DESELECT
 
-		;pasar a velocidad rapida
+		;se podria aumentar la velocidad aca
 		POP TEMP
 
 		RET
@@ -106,7 +113,7 @@ SD_DESELECT:
 		SBI SPI_PORT,SS_PIN
 		RET
 
-;lee por spi hasta que llega a una respuesta distinta a la de espera
+;lee por spi hasta que llega a una respuesta distinta a la de espera (FF) y vuelva a llegar FF
 .DEF SD_IN_OUT_REG = R16
 .DEF SPI_IN_OUT_REG = R16
 .DEF SD_RX_RSP_REG = R16
@@ -129,7 +136,7 @@ SD_RX_RSP:
 		RET
 
 		
-;eviar comando a la SD
+;enviar comando a la SD
 	.DEF TEMP = R16
 	.DEF SPI_IN_OUT_REG = R16
 	.DEF SD_TX_CMD_RSP = R16
@@ -284,7 +291,6 @@ SD_TX_CMD:
 
 ;lee una linea del SD y lo escribe en el buffer de SD
 .DEF TEMP = R17
-.DEF TEMP_2 = R24
 .DEF OVERFLOW_REG = R23
 .DEF SD_CMD_REG = R2
 .DEF SD_TX_CMD_ARG_REG_0 = R3
@@ -305,9 +311,8 @@ SD_RX_LINE:
 		PUSH SD_BLOCK_POINTER_REG_2
 		PUSH SD_BLOCK_POINTER_REG_3
 		PUSH OVERFLOW_REG
-		PUSH TEMP_2
 
-		;CLR OVERFLOW_REG
+		LDI OVERFLOW_REG,0xFE
 
 		;cargo el puntero de bloque
 		
@@ -324,34 +329,6 @@ SD_RX_LINE:
 	SD_RX_LINE_LOOP:
 
 		;se podria agregar un testeo si se llego al final de la memoria disponible
-
-		;reviso si hay que saltear posiciones (si el resto por 512 es 416)
-		;MOV TEMP,SD_BLOCK_POINTER_REG_3
-		;CPI TEMP,0xA0
-		;BRNE SD_RX_LINE_TST_CMD
-
-		;MOV TEMP,SD_BLOCK_POINTER_REG_2
-		;ANDI TEMP,0x01
-		;CPI TEMP,0x01
-		;BRNE SD_RX_LINE_TST_CMD
-
-		;LDI ZL,LOW(UI_TEXT_GEPETTO<<1)
-		;LDI ZH,HIGH(UI_TEXT_GEPETTO<<1)
-		;CALL USB_SEND_P_LINE
-
-		;aumento puntero de bloques
-		;LDI TEMP_2,96
-		;ADD SD_BLOCK_POINTER_REG_3, TEMP_2
-		;ADC SD_BLOCK_POINTER_REG_2,ZERO_REG
-		;ADC SD_BLOCK_POINTER_REG_1,ZERO_REG
-		;ADC SD_BLOCK_POINTER_REG_0,ZERO_REG
-	
-	;SD_RX_LINE_LOOP_INC:
-		;CALL SPI_RX
-		;DEC TEMP_2
-		;BRNE SD_RX_LINE_LOOP_INC
-
-	;SD_RX_LINE_TST_CMD:
 
 		;reviso si hay que mandar instruccion de lectura (si el numero es multiplo de 512)
 		CPI SD_BLOCK_POINTER_REG_3, 0x00
@@ -391,9 +368,10 @@ SD_RX_LINE:
 
 	SD_RX_LINE_RX:
 
-		;INC OVERFLOW_REG
-		;TST OVERFLOW_REG
-		;BREQ SD_RX_LINE_END
+		
+		DEC OVERFLOW_REG
+		TST OVERFLOW_REG
+		BREQ SD_RX_LINE_END_BUFFER
 
 		CALL SPI_RX
 		;guardo el caracter
@@ -415,6 +393,11 @@ SD_RX_LINE:
 
 		JMP SD_RX_LINE_LOOP
 
+		;si es el ultimo caracter disponible del buffer guardo un \n
+	SD_RX_LINE_END_BUFFER:
+		LDI CHAR_REG,'\n'
+		BUFFER_INSERT_CHAR SD_BUFFER, SD_BUFFER_POINTER
+
 	SD_RX_LINE_END:
 
 		CALL SD_DESELECT
@@ -424,7 +407,6 @@ SD_RX_LINE:
 		STS SD_BLOCK_POINTER+2,SD_BLOCK_POINTER_REG_2
 		STS SD_BLOCK_POINTER+3,SD_BLOCK_POINTER_REG_3
 		
-		POP TEMP_2
 		POP OVERFLOW_REG
 		POP SD_BLOCK_POINTER_REG_3
 		POP SD_BLOCK_POINTER_REG_2
@@ -434,7 +416,6 @@ SD_RX_LINE:
 
 ; escribe una linea en la SD apartir de lo apuntado por X
 .DEF TEMP = R16
-.DEF TEMP_2 = R23
 .DEF SD_CMD_REG = R2
 .DEF SD_TX_CMD_ARG_REG_0 = R3
 .DEF SD_TX_CMD_ARG_REG_1 = R4
@@ -453,10 +434,8 @@ SD_TX_LINE:
 		PUSH SD_BLOCK_POINTER_REG_1
 		PUSH SD_BLOCK_POINTER_REG_2
 		PUSH SD_BLOCK_POINTER_REG_3
-		PUSH TEMP_2
 
 		;cargo el puntero de bloque
-		
 		LDS SD_BLOCK_POINTER_REG_0,SD_BLOCK_POINTER
 		LDS SD_BLOCK_POINTER_REG_1,SD_BLOCK_POINTER+1
 		LDS SD_BLOCK_POINTER_REG_2,SD_BLOCK_POINTER+2
@@ -469,30 +448,7 @@ SD_TX_LINE:
 
 		;se podria agregar un testeo si se llego al final de la memoria disponible
 
-		;reviso si hay que saltear posiciones (si el resto por 512 es 416)
-		;MOV TEMP,SD_BLOCK_POINTER_REG_3
-		;CPI TEMP,0xA0
-		;BRNE SD_TX_LINE_TST_CMD
-
-		;MOV TEMP,SD_BLOCK_POINTER_REG_2
-		;ANDI TEMP,0x01
-		;CPI TEMP,0x01
-		;BRNE SD_TX_LINE_TST_CMD
-
-		;aumento puntero de bloques
-		;LDI TEMP_2,96
-		;ADD SD_BLOCK_POINTER_REG_3, TEMP_2
-		;ADC SD_BLOCK_POINTER_REG_2,ZERO_REG
-		;ADC SD_BLOCK_POINTER_REG_1,ZERO_REG
-		;ADC SD_BLOCK_POINTER_REG_0,ZERO_REG
-	
-	;SD_TX_LINE_LOOP_INC:
-		;CALL SPI_RX
-		;DEC TEMP_2
-		;BRNE SD_TX_LINE_LOOP_INC
-
 		;reviso si hay que mandar instruccion de lectura (si el numero es multiplo de 512)
-	;SD_TX_LINE_TST_CMD:
 		CPI SD_BLOCK_POINTER_REG_3,0x00
 		BRNE SD_TX_LINE_TX
 
@@ -502,28 +458,18 @@ SD_TX_LINE:
 		BRNE SD_TX_LINE_TX
 
 	SD_TX_LINE_TX_CMD:
-
-
 		;escribo el CRC del bloque anterior, si es el primero no pasa nada
 		LDI SPI_IN_OUT_REG,SD_CMD_RSP_WAIT
 		CALL SPI_TX
 		LDI SPI_IN_OUT_REG,SD_CMD_RSP_WAIT
 		CALL SPI_TX
-		;leo respuesta
+		;leo respuesta de la escritura anterior
 		CALL SPI_RX
 
 	SD_TX_LINE_TX_CMD_W_1:
 		CALL SPI_RX
 		CPI SPI_IN_OUT_REG,0x00
 		BREQ SD_TX_LINE_TX_CMD_W_1
-
-		;CALL SD_DESELECT
-		;CALL SPI_RX
-		;CALL SD_SELECT
-	;SD_TX_LINE_TX_CMD_W_2:
-		;CALL SPI_RX
-		;CPI SPI_IN_OUT_REG,0x00
-		;BREQ SD_TX_LINE_TX_CMD_W_2
 
 		; mando el comando
 		LDI TEMP, WRITE_SINGLE_BLOCK
@@ -534,7 +480,7 @@ SD_TX_LINE:
 		MOV SD_TX_CMD_ARG_REG_3,SD_BLOCK_POINTER_REG_3
 		CALL SD_TX_CMD
 
-		;escribo primro un FF siempre revisar!!!!! por comprobar que termino respuesta
+		; revisar si escribo primro un FF siempre!!!!! por comprobar que termino respuesta
 		
 		;revisar respuesta con 0
 		CPI SD_RX_RSP_REG,SD_CMD_RSP_NOT_IDLE
@@ -560,9 +506,6 @@ SD_TX_LINE:
 		
 		POP TEMP ; recupero caracter
 		CPI TEMP,'\n'
-
-		
-
 		BREQ SD_TX_LINE_END
 
 		JMP SD_TX_LINE_LOOP
@@ -575,7 +518,6 @@ SD_TX_LINE:
 		STS SD_BLOCK_POINTER+2,SD_BLOCK_POINTER_REG_2
 		STS SD_BLOCK_POINTER+3,SD_BLOCK_POINTER_REG_3
 
-		POP TEMP_2
 		POP SD_BLOCK_POINTER_REG_3
 		POP SD_BLOCK_POINTER_REG_2
 		POP SD_BLOCK_POINTER_REG_1
@@ -614,7 +556,7 @@ SD_END_OP:
 
 	SD_END_OP_RX:
 
-		LDI R16,'Z'
+		LDI R16,0
 		CALL SPI_TX
 
 		;aumento puntero de bloques
@@ -647,7 +589,3 @@ SD_END_OP:
 		POP SD_BLOCK_POINTER_REG_1
 		POP SD_BLOCK_POINTER_REG_0
 		RET
-
-UI_TEXT_GEPETTO:	.DB "Gepetto        ", '\n'
-UI_TEXT_1:			.DB "Primera linea  ", '\n'
-UI_TEXT_2:			.DB "Segunda linea  ", '\n'
