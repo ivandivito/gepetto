@@ -1,5 +1,9 @@
 .INCLUDE "gepetto.inc"
 
+.DSEG
+
+TEST: .BYTE 16
+
  .CSEG
 .ORG 0x00
 	JMP MAIN
@@ -24,41 +28,94 @@
 	CALL USB_INIT
 	
 	CALL SPI_INIT
-	;creo que aca se nesesita un delay de 10ms
-	CALL SPI_SD_INIT
 
-	
+	;CALL SD_INIT
 
 	SEI
+
+	;DEBUG
+	
+	LDI R16,'P'
+	STS TEST,R16
+	LDI R16,'E'
+	STS TEST+1,R16
+	LDI R16,'R'
+	STS TEST+2,R16
+	LDI R16,'C'
+	STS TEST+3,R16
+	LDI R16,'H'
+	STS TEST+4,R16
+	LDI R16,'A'
+	STS TEST+5,R16
+	LDI R16,' '
+	STS TEST+6,R16
+	LDI R16,'P'
+	STS TEST+7,R16
+	LDI R16,'U'
+	STS TEST+8,R16
+	LDI R16,'T'
+	STS TEST+9,R16
+	LDI R16,'O'
+	STS TEST+10,R16
+	LDI R16,' '
+	STS TEST+11,R16
+	LDI R16,' '
+	STS TEST+12,R16
+	LDI R16,' '
+	STS TEST+13,R16
+	LDI R16,' '
+	STS TEST+14,R16
+	LDI R16,'\n'
+	STS TEST+15,R16
+
+	LOOP:
+		JMP LOOP
+
+	;DEBUG
 	
 	;Verificar programa guardado
 	
 	;Configurar e inicializar GRBL
 
-	CLR SPI_SD_RX_BLOCK_INDEX_REG
-	LDI XL,LOW(SPI_RX_BUFFER_1)
-	LDI XH,LOW(SPI_RX_BUFFER_1)
+	LDI R20,255
+W_LOOP:
+	LDI XL,LOW(TEST)
+	LDI XH,HIGH(TEST)
 
-	;debug
+	CALL SD_TX_LINE
+	
+	DEC R20
+	BRNE W_LOOP
+
 	SBI DDRC,2
 	CBI PORTC,2
-	;debug
 
+	CALL SD_END_OP
 
-	CALL SPI_SD_RX_BLOCK
+	CALL DELAY
 
-	
-	LDI XL,LOW(SPI_RX_BUFFER_1)
-	LDI XH,LOW(SPI_RX_BUFFER_1)
+	SBI DDRC,3
+	CBI PORTC,3
+
+	LDI R20,255
+
+R_LOOP:
+	CALL SD_RX_LINE
+
+	LDI XL,LOW(SD_BUFFER)
+	LDI XH,HIGH(SD_BUFFER)
 
 	CALL USB_SEND_D_LINE
 
-	MAIN_LOOP:
+	DEC R20
+	BRNE R_LOOP
+
+	CALL SD_END_OP
+
+		MAIN_LOOP:
 
 		JMP MAIN_LOOP
-
-
-
+	
 	DELAY: ;1 seg delay
 
 		LDI R16, 3
@@ -76,6 +133,8 @@
 
 		RET
 
+	
+
 .INCLUDE "buffer.inc"
 
 .INCLUDE "string.asm"
@@ -83,3 +142,10 @@
 .INCLUDE "usb_comunication.asm"
 
 .INCLUDE "spi.asm"
+
+.INCLUDE "sd_card_comunication.asm"
+
+
+LDI ZL,LOW(UI_TEXT_GEPETTO<<1)
+		LDI ZH,HIGH(UI_TEXT_GEPETTO<<1)
+		CALL USB_SEND_P_LINE
