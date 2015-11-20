@@ -152,6 +152,8 @@ SOFT_UART_SEND_BYTE:
 
 	OUT SOFT_UART_TCNT, ZERO_REG ;Limpia el timer
 
+	ROR BYTE_REG
+
 	SEI ;Habilita interrupciones
 
 	POP TEMP
