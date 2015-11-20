@@ -101,6 +101,8 @@ SD_INIT:
 
 		CALL SD_DESELECT
 
+		CALL CHECK_EXIST_PROGRAM_IN_SD
+
 		;se podria aumentar la velocidad aca
 		POP TEMP
 
@@ -593,4 +595,37 @@ SD_END_OP:
 		POP SD_BLOCK_POINTER_REG_2
 		POP SD_BLOCK_POINTER_REG_1
 		POP SD_BLOCK_POINTER_REG_0
+		RET
+
+
+; revisa si hay un programa guardado (si la primera linea es la firma) y setea el flag en GGR
+.DEF TEMP_1 = R16
+.DEF TEMP_2 = R17
+CHECK_EXIST_PROGRAM_IN_SD:
+		
+		CALL SD_END_OP
+		CALL SD_RX_LINE
+
+		LDI XL, LOW(SD_BUFFER)
+		LDI XH, HIGH(SD_BUFFER)
+
+		LDI ZL, LOW(FILE_HEADER<<1)
+		LDI ZH, HIGH(FILE_HEADER<<1)
+
+		CALL STRING_COMPARE_P ;Comparar con el encabezado
+		BREQ CHECK_EXIST_PROGRAM_NO_PROGRAM
+
+			LDS TEMP_1, GGR
+			ORI TEMP_1, (1<<SFF) ;Marcar que existe un programa en memoria
+			STS GGR, TEMP_1
+
+			RJMP CHECK_EXIST_PROGRAM_END
+		CHECK_EXIST_PROGRAM_NO_PROGRAM:
+
+			LDS TEMP_1, GGR
+			ANDI TEMP_1, ~(1<<SFF) ;Marcar que no existe un programa en memoria
+			STS GGR, TEMP_1
+
+		CHECK_EXIST_PROGRAM_END:
+		
 		RET
