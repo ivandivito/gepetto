@@ -18,6 +18,19 @@ GRBL_OK:
 GRBL_ERROR:
 .DB "error", 0x00
 
+GRBL_ALARM:
+.DB "ALARM", 0x00
+
+GRBL_PAUSE_CMD:
+.DB "!", 0x00
+
+GRBL_CONTINUE_CMD:
+.DB "~", 0x00
+
+GRBL_CANCEL_CMD:
+.DB 0x18, 0x00 ; carcter CAN (cancelar) control - X
+
+
 ;Subrutina para inicializar el soft UART para conectar con GRBL
 .DEF TEMP = R16
 

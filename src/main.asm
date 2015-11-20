@@ -11,7 +11,7 @@
 
 .DSEG
 CURRENT_STATE: .BYTE 1
-GGR: .BYTE 1; Gepetto General Register (- - - SFF(Saved File Flag) CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
+GGR: .BYTE 1; Gepetto General Register (- RSS(Running Substate) GD (GRBL disposable) SFF(Saved File Flag) CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
 
 .CSEG
 .ORG 0x00
