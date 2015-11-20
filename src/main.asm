@@ -1,14 +1,17 @@
 .INCLUDE "gepetto.inc"
 
 .EQU UIS = 0
+
 .EQU UII = 1 ;0: Interfaz Valida			1: Refrescar Interfaz
 .EQU UC  = 2  ;0: USB desconectado			1: USB conectado
 .EQU CSS = 3 ;0: Renviar datos a GRBL		1: Guardar datos en SD
 .EQU SFF = 4 ;0: No hay programa guardado	1: Hay programa guardado
+.EQU GD = 5 ;0: GRBL disponible , 1: GRBL procesando instruccion
+.EQU RSS = 6 ;0: operacion corriendo , 1: operacion pausada
 
 .DSEG
 CURRENT_STATE: .BYTE 1
-GGR: .BYTE 1; Gepetto General Register (- - - SFF(Saved File Flag) CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
+GGR: .BYTE 1; Gepetto General Register (- RSS(Running Substate) GD (GRBL disposable) SFF(Saved File Flag) CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
 
 .CSEG
 .ORG 0x00
@@ -57,10 +60,9 @@ MAIN:
 	
 	;Inicializacion SPI (SD)
 
-	;CALL SPI_INIT
-	;creo que aca se nesesita un delay de 10ms
-	;CALL SPI_SD_INIT
+	CALL SD_INIT
 	
+	;lo comente porque sino no puedo correrlo en mi placa
 	;Incializar LCD
 	
 	CALL UI_INIT
@@ -125,6 +127,9 @@ MAIN_LOOP:
 .INCLUDE "grbl_comunication.asm"
 
 .INCLUDE "usb_comunication.asm"
+
+.INCLUDE "spi.asm"
+.INCLUDE "sd_card_comunication.asm"
 
 .INCLUDE "delay.asm"
 .INCLUDE "lcd.asm"
