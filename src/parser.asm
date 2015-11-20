@@ -1,0 +1,180 @@
+
+.CSEG
+
+;Subrutina para parsear un entero de 32 bits apuntado por X. Si hay error se devuelve 0xFF en R16. La longuitud de la linea se debe pasar en R21
+
+.DEF C0 = R2
+.DEF C1 = R3
+.DEF C2 = R4
+.DEF C3 = R5
+
+.DEF M0 = R10
+.DEF M1 = R11
+.DEF M2 = R12
+.DEF M3 = R13
+.DEF M4 = R14
+
+.DEF A0 = R16
+
+.DEF B0 = R17
+.DEF B1 = R18
+.DEF B2 = R19
+.DEF B3 = R20
+
+.DEF COUNT_REG = R21
+
+PARSE_U32_FROM_LINE:
+	PUSH B0
+	PUSH B1
+	PUSH B2
+	PUSH B3
+	PUSH COUNT_REG
+	PUSH XL
+	PUSH XH
+	
+	
+	CPI COUNT_REG, 2
+	BRLO PARSE_U32_FROM_LINE_ERROR
+
+	ADD XL, COUNT_REG
+	ADC XH, ZERO_REG
+
+	LD A0, -X
+	CPI A0, '\n' ;Verificar que el ultimo caracter sea '\n'
+	BRNE PARSE_U32_FROM_LINE_ERROR
+
+	DEC COUNT_REG
+
+	;Limpiar resultado
+	CLR C0
+	CLR C1
+	CLR C2
+	CLR C3
+
+	LDI B0, LOW(1)
+	LDI B1, BYTE2(1)
+	LDI B1, BYTE3(1)
+	LDI B1, BYTE4(1)
+
+	PARSE_U32_FROM_LINE_LOOP:
+
+		LD A0, -X
+		RCALL U8_FROM_ASCII
+		CPI A0, 0xFF
+		BREQ PARSE_U32_FROM_LINE_ERROR
+
+		CALL MUL_U8_U32
+
+		ADD C0, M0
+		ADC C1, M1
+		ADC C2, M2
+		ADC C3, M3
+
+		BRCS PARSE_U32_FROM_LINE_ERROR
+
+		DEC COUNT_REG
+		BREQ PARSE_U32_FROM_LINE_SUCCESS
+
+		LDI A0, 10
+
+		CALL MUL_U8_U32
+
+		MOV B0, M0
+		MOV B1, M1
+		MOV B2, M2
+		MOV B3, M3
+
+		RJMP PARSE_U32_FROM_LINE_LOOP
+
+	PARSE_U32_FROM_LINE_ERROR:
+		LDI A0, 0xFF
+		RJMP PARSE_U32_FROM_LINE_END
+
+	PARSE_U32_FROM_LINE_SUCCESS:
+		CLR A0
+
+	PARSE_U32_FROM_LINE_END:
+	
+	POP XH
+	POP XL
+	POP COUNT_REG
+	POP B3
+	POP B2
+	POP B1
+	POP B0
+	RET
+
+
+
+
+
+;Subrutina para multiplicar un entero sin signar de 8 bit con un entero sin signar de 32 bit. El resultado se devuelve en R10 - R14
+
+.DEF A0 = R16
+
+.DEF B0 = R17
+.DEF B1 = R18
+.DEF B2 = R19
+.DEF B3 = R20
+
+.DEF C0 = R10
+.DEF C1 = R11
+.DEF C2 = R12
+.DEF C3 = R13
+.DEF C4 = R14
+
+.DEF M0 = R0
+.DEF M1 = R1
+
+MUL_U8_U32:
+	PUSH R0
+
+	MUL A0, B0
+
+	MOV C0, M0
+	MOV C1, M1
+	CLR C2
+	CLR C3
+	CLR C4
+
+	MUL A0, B1
+
+	ADD C1, M0
+	ADC C2, M1
+
+	MUL A0, B2
+
+	ADD C2, M0
+	ADC C3, M1
+	
+	MUL A0, B3
+
+	ADD C3, M0
+	ADC C4, M1
+
+	CLR ZERO_REG
+	POP R0
+	RET
+
+
+
+;Subrutina para obtener un entero de 8 bit a partir de un caracter numerico. Devuelve 0xFF en caso de error
+
+.DEF CHAR_REG = R16
+
+U8_FROM_ASCII:
+	
+	CPI CHAR_REG, '0'
+	BRLO U8_FROM_ASCII_INVALID
+
+	CPI CHAR_REG, '9'+1
+	BRSH U8_FROM_ASCII_INVALID
+
+		SUBI CHAR_REG, '0'
+
+		RET
+	U8_FROM_ASCII_INVALID:
+
+		LDI CHAR_REG, 0xFF
+
+		RET

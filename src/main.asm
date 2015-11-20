@@ -39,7 +39,7 @@ MAIN:
 	OUT SPL, R16
  	LDI R16, HIGH(RAMEND)
 	OUT SPH, R16
-	
+
 	CALL TIMER_INIT
 	
 	LDI R16, STATE_IDLE
@@ -114,6 +114,8 @@ MAIN_LOOP:
 .INCLUDE "buffer.inc"
 
 .INCLUDE "string.asm"
+
+.INCLUDE "parser.asm"
 
 .INCLUDE "state.inc"
 
