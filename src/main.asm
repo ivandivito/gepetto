@@ -1,13 +1,14 @@
 .INCLUDE "gepetto.inc"
 
 .EQU UIS = 0
-.EQU UII = 1 ;0: Interfaz Valida, 1: Refrescar Interfaz
-.EQU UC = 2
-.EQU CSS = 3 ;0: Renviar datos a GRBL, 1: Guardar datos en SD
+.EQU UII = 1 ;0: Interfaz Valida			1: Refrescar Interfaz
+.EQU UC  = 2  ;0: USB desconectado			1: USB conectado
+.EQU CSS = 3 ;0: Renviar datos a GRBL		1: Guardar datos en SD
+.EQU SFF = 4 ;0: No hay programa guardado	1: Hay programa guardado
 
 .DSEG
 CURRENT_STATE: .BYTE 1
-GGR: .BYTE 1; Gepetto General Register (- - - - CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
+GGR: .BYTE 1; Gepetto General Register (- - - SFF(Saved File Flag) CSS(Conected Substate) UC(USB Connected) UII(UI Invalidated) UIS(UI State))
 
 .CSEG
 .ORG 0x00
@@ -62,15 +63,14 @@ MAIN:
 	
 	;Incializar LCD
 	
-	SEI
-
 	CALL UI_INIT
 
 
 	LDI R16, (1<<UII)
 	STS GGR, R16
 
-	
+	SEI
+
 	;Verificar programa guardado
 	
 	;Configurar e inicializar GRBL
@@ -78,6 +78,7 @@ MAIN:
 .DEF STATE_REG = R16
 	
 MAIN_LOOP:
+
 	;Cargar estado
 	LDS STATE_REG, CURRENT_STATE
 	
@@ -113,6 +114,8 @@ MAIN_LOOP:
 .INCLUDE "buffer.inc"
 
 .INCLUDE "string.asm"
+
+.INCLUDE "state.inc"
 
 .INCLUDE "buttons.asm"
 

@@ -37,13 +37,13 @@ USB_INIT:
 	
 	STS UCSR0A, ZERO_REG
 
-	;Habilitar envio, recepcion e interrupciones
-	LDI TEMP, (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0)
-	STS UCSR0B, TEMP
-
 	;Configurar 8 bits de transferencia, sin paridad, 1 stop bit
 	LDI TEMP, (1<<UCSZ01)| (1<<UCSZ00)
 	STS UCSR0C, TEMP
+
+	;Habilitar envio, recepcion e interrupciones
+	LDI TEMP, (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0)
+	STS UCSR0B, TEMP
 
 	RET
 
@@ -113,9 +113,8 @@ USB_INTERRUPT:
 	IN SREG_REG, SREG
 
 	LDS R16, UDR0
-
 	BUFFER_INSERT_CHAR USB_BUFFER, USB_BUFFER_POINTER
-	
+
 	;Tomar timestap
 	LDS R16, TCNT1L
 	LDS R17, TCNT1H
@@ -129,12 +128,6 @@ USB_INTERRUPT:
 	STS ULCT+2, R18
 	STS ULCT+3, R19
 
-	SBI DDRC,2
-	CBI PORTC,2
-
-	LDI R16,'Z'
-	CALL USB_SEND_CHAR
-	
 	OUT SREG, SREG_REG
 	
 	POP YH
