@@ -4,6 +4,8 @@
 .EQU UII = 1 ;0: Interfaz Valida, 1: Refrescar Interfaz
 .EQU UC = 2
 .EQU CSS = 3 ;0: Renviar datos a GRBL, 1: Guardar datos en SD
+.EQU GD = 4 ;0: GRBL disponible , 1: GRBL procesando instruccion
+.EQU RSS = 5 ;0: operacion corriendo , 1: operacion pausada
 
 .DSEG
 CURRENT_STATE: .BYTE 1
@@ -56,10 +58,9 @@ MAIN:
 	
 	;Inicializacion SPI (SD)
 
-	;CALL SPI_INIT
-	;creo que aca se nesesita un delay de 10ms
-	;CALL SPI_SD_INIT
+	CALL SD_INIT
 	
+	;lo comente porque sino no puedo correrlo en mi placa
 	;Incializar LCD
 	
 	SEI
@@ -120,6 +121,9 @@ MAIN_LOOP:
 .INCLUDE "grbl_comunication.asm"
 
 .INCLUDE "usb_comunication.asm"
+
+.INCLUDE "spi.asm"
+.INCLUDE "sd_card_comunication.asm"
 
 .INCLUDE "delay.asm"
 .INCLUDE "lcd.asm"
