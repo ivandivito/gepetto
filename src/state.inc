@@ -11,6 +11,7 @@
 
 	LDS TEMP_1, GGR
 	ORI TEMP_1, (1<<UII) ;Invalidar UI
+	ANDI TEMP_1, ~(1<<UIS) ; Reinicia estado interfaz
 	STS GGR, TEMP_1 ;Guardar
 
 .ENDMACRO

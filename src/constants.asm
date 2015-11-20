@@ -19,3 +19,5 @@ CONSTANT_RUNNING_CANCEL:	.DB "Cancelar        ", 0
 CONSTANT_ERROR_TITLE:		.DB "Error           ", 0
 CONSTANT_ERROR_ACCEPT:		.DB "Aceptar         ", 0
 
+FILE_HEADER: .DB "GEPETTO", '\n', 0
+

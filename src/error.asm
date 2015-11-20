@@ -1,9 +1,56 @@
 
 .CSEG
-
+.DEF TEMP_1 = R16
 ERROR_RUN:
 	
-	;Procesar botones
-	
+	;procesar botones
+
+	CALL BUTTONS_READ
+	ANDI TEMP_1, (1<<BUTTONS_SELECT) ; Si es el boton de select
+	BREQ ERROR_BUTTONS_CONTINUE
+
+		CHANGE_STATE STATE_IDLE
+		RJMP ERROR_END
+
+	ERROR_BUTTONS_CONTINUE:
+
 	;Actualizar UI
+	LDS TEMP_1, GGR
+	ANDI TEMP_1, (1<<UII)
+	BREQ ERROR_END ;Verificar si la interfaz esta invalida
+		RCALL ERROR_REFRESH_UI
+
+	ERROR_END:
+
+	RET
+
+
+;Subrutina para actualizar interfaz
+
+.DEF TEMP_1 = R16
+.DEF GGR_REG = R18
+ERROR_REFRESH_UI:
+
+	PUSH ZL
+	PUSH ZH
+	PUSH GGR_REG
+
+	LDS GGR_REG, GGR ;Cargar registro de flags
+
+	LDI ZL, LOW(CONSTANT_ERROR_TITLE<<1)
+	LDI ZH, HIGH(CONSTANT_ERROR_TITLE<<1)
+	
+	CALL UI_WRITE_FIRST_LINE_P_STRING ;Escribir titulo
+
+	LDI ZL, LOW(CONSTANT_ERROR_ACCEPT<<1)
+	LDI ZH, HIGH(CONSTANT_ERROR_ACCEPT<<1)
+	
+	CALL UI_WRITE_SECOND_LINE_P_STRING ;Escribir primera linea
+
+	ANDI GGR_REG, ~(1<<UII) ;Limpiar flag de invalido
+	STS GGR, GGR_REG
+
+	POP GGR_REG
+	POP ZH
+	POP ZL
 	RET
