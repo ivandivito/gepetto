@@ -67,7 +67,6 @@ MAIN:
 	
 	CALL UI_INIT
 
-
 	LDI R16, (1<<UII)
 	STS GGR, R16
 
@@ -78,6 +77,9 @@ MAIN:
 	;Configurar e inicializar GRBL
 
 .DEF STATE_REG = R16
+
+;falta inicializacion de estados
+CALL RUNNING_INIT
 	
 MAIN_LOOP:
 
