@@ -13,22 +13,25 @@ GRBL_BUFFER_POINTER: .BYTE 1
 ;Constantes
 
 GRBL_OK:
-.DB "ok", 0x00
+.DB "ok",'\n' , 0x00
 
 GRBL_ERROR:
 .DB "error", 0x00
 
 GRBL_ALARM:
-.DB "ALARM", 0x00
+.DB "ALARM" , 0x00
 
 GRBL_PAUSE_CMD:
-.DB "!", 0x00
+.DB "!",'\n' , 0x00
 
 GRBL_CONTINUE_CMD:
-.DB "~", 0x00
+.DB "~",'\n' , 0x00
+
+GRBL_HOME_CMD:
+.DB "$H",'\n' , 0x00
 
 GRBL_CANCEL_CMD:
-.DB 0x18, 0x00 ; caracter CAN (cancelar) control - X
+.DB 0x18,'\n' , 0x00 ; caracter CAN (cancelar) control - X
 
 
 ;Subrutina para inicializar el soft UART para conectar con GRBL
