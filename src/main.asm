@@ -71,8 +71,6 @@ MAIN:
 	STS GGR, R16
 
 	SEI
-
-	;Verificar programa guardado
 	
 	;Configurar e inicializar GRBL
 

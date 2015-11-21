@@ -28,7 +28,7 @@ GRBL_CONTINUE_CMD:
 .DB "~", 0x00
 
 GRBL_CANCEL_CMD:
-.DB 0x18, 0x00 ; carcter CAN (cancelar) control - X
+.DB 0x18, 0x00 ; caracter CAN (cancelar) control - X
 
 
 ;Subrutina para inicializar el soft UART para conectar con GRBL
