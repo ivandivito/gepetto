@@ -14,7 +14,7 @@
 .EQU SOFT_UART_TX = 4
 .EQU SOFT_UART_RX = 3
 
-.EQU SOFT_UART_CS = 1 ; Clock selector, configura el prescaler
+.EQU SOFT_UART_CS = 2 ; Clock selector, configura el prescaler
 
 .EQU SOFT_UART_TCNT = TCNT0
 .EQU SOFT_UART_TCCRA = TCCR0A
@@ -23,9 +23,9 @@
 .EQU SOFT_UART_OCF = OCF0A
 .EQU SOFT_UART_TIFR = TIFR0
 
-.EQU SOFT_UART_DEF_SUBR = 34 ; Fclk / (4 * Pre * Baud rate) - 1
+.EQU SOFT_UART_DEF_SUBR = 51 ; Fclk / (4 * Pre * Baud rate) - 1
 
-.EQU SOFT_UART_FE = 4 ; Fclk / (4 * Pre * Baud rate) - 1
+.EQU SOFT_UART_FE = 4
 
 .DSEG
 ;Soft UART Baud Register

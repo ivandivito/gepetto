@@ -2,7 +2,7 @@
 
 .INCLUDE "buffer.inc"
 
-.EQU SOFT_UART_SUBR = 34 ; Fclk / (4 * Pre * Baud rate) - 1
+.EQU SOFT_UART_SUBR = 51 ; Fclk / (4 * Pre * Baud rate) - 1
 
 .DSEG
 GRBL_BUFFER: .BYTE BUFFER_SIZE

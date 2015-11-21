@@ -17,6 +17,11 @@ LINE_TRANSFERED: .BYTE 4 ; Lineas transferidas
 CONNECTED_RUN:
 	
 	;Procesar buffer GRBL
+
+	;Si esta vacio el buffer continuar
+	LDS TEMP_2, GRBL_BUFFER_POINTER
+	TST TEMP_2
+	BREQ CONNECTED_GRBL_CONTINUE
 	
 	;Verificar si termina en \n
 	POINT_Y_TO_END_OF_BUFFER GRBL_BUFFER, GRBL_BUFFER_POINTER
@@ -26,11 +31,11 @@ CONNECTED_RUN:
 	CPI TEMP_1, '\n'
 	BRNE CONNECTED_GRBL_CONTINUE
 
+		
 		RCALL CONNECTED_GRBL_PROCESS_LINE
 	
 	CONNECTED_GRBL_CONTINUE:
 	
-
 
 
 	;A definir
@@ -62,7 +67,10 @@ CONNECTED_RUN:
 	*/
 	;Procesar buffer USB (guardar o ejecutar)
 	
-
+	;Si esta vacio el buffer continuar
+	LDS TEMP_2, USB_BUFFER_POINTER
+	TST TEMP_2
+	BREQ CONNECTED_USB_CONTINUE
 
 	;Verificar si termina en \n
 	POINT_Y_TO_END_OF_BUFFER USB_BUFFER, USB_BUFFER_POINTER
@@ -385,6 +393,7 @@ CONNECTED_USB_SAVE_LINE:
 		BRNE CONNECTED_USB_SAVE_LINE_NOT_FINAL
 			
 			LDS TEMP_1, GGR
+			ORI TEMP_1,(1<<SFF)
 			ANDI TEMP_1, ~(1<<CSS) ;Salir de modo transferir archivo
 			STS GGR, TEMP_1
 

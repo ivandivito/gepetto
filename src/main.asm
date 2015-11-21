@@ -62,12 +62,15 @@ MAIN:
 
 	CALL SD_INIT
 	
-	;lo comente porque sino no puedo correrlo en mi placa
 	;Incializar LCD
 	
 	CALL UI_INIT
 
-	LDI R16, (1<<UII)
+	;falta inicializacion de estados
+	CALL RUNNING_INIT
+
+	LDS R16, GGR
+	ORI R16, (1<<UII)
 	STS GGR, R16
 
 	SEI
@@ -75,10 +78,6 @@ MAIN:
 	;Configurar e inicializar GRBL
 
 .DEF STATE_REG = R16
-
-;falta inicializacion de estados
-CALL RUNNING_INIT
-	
 MAIN_LOOP:
 
 	;Cargar estado

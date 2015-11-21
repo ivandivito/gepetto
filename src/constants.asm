@@ -11,7 +11,7 @@ CONSTANT_IDLE_RUN:			.DB "Ejecutar        ", 0
 CONSTANT_CONNECTED_TITLE:	.DB "Conectado       ", 0
 CONSTANT_CONNECTED_CANCEL:	.DB "Cancelar        ", 0
 
-CONSTANT_RUNNING_TITLE:		.DB "Conectado       ", 0
+CONSTANT_RUNNING_TITLE:		.DB "Running       ", 0
 CONSTANT_RUNNING_PAUSE:		.DB "Pausar          ", 0
 CONSTANT_RUNNING_CONTINUE:	.DB "Reanudar        ", 0
 CONSTANT_RUNNING_CANCEL:	.DB "Cancelar        ", 0

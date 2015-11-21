@@ -97,7 +97,9 @@ IDLE_RUN:
 			
 		IDLE_GO_TO_RUNNING:
 			
-			;Codigo para ir a estado RUNNING
+			CHANGE_STATE STATE_RUNNING
+
+			RJMP IDLE_END
 		
 	IDLE_BUTTONS_CONTINUE:
 	
