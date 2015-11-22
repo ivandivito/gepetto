@@ -16,7 +16,7 @@ GRBL_BUFFER_POINTER: .BYTE 1
 ;Constantes
 
 GRBL_OK:
-.DB "ok",'\n' , 0x00
+.DB "ok", 0x00
 
 GRBL_ERROR:
 .DB "error", 0x00
@@ -76,7 +76,7 @@ GRBL_SEND_CHAR:
 	;Esperar a que el buffer este listo
 	LDS TEMP, UCSR0A
 	ANDI TEMP, (1<<UDRE0)
-	BREQ USB_SEND_CHAR
+	BREQ GRBL_SEND_CHAR
 	
 	STS UDR0, CHAR_REG
 

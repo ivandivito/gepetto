@@ -155,3 +155,41 @@ UI_WRITE_SECOND_LINE_P_STRING:
 	CALL UI_WRITE_P_STRING
 
 	RET
+
+
+;Subrutina para enviar un String al LCD. El string es apuntado por X y termina en \n
+
+.DEF CHAR_REG = R16
+
+UI_WRITE_D_STRING:
+	PUSH XL
+	PUSH XH
+
+	UI_WRITE_D_STRING_LOOP:
+		LD CHAR_REG, X+
+		CPI CHAR_REG, '\n'
+		BREQ UI_WRITE_D_STRING_LOOP_BREAK
+
+		RCALL UI_WRITE_CHAR
+		
+		RJMP UI_WRITE_D_STRING_LOOP
+
+	UI_WRITE_D_STRING_LOOP_BREAK:
+
+	POP XH
+	POP XL
+	RET
+
+
+;Subrutina para escribir un String a la primera linea LCD. El string es apuntado por Z y termina en 0
+
+.DEF TEMP = R16
+
+UI_WRITE_FIRST_LINE_D_STRING:
+	
+	LDI TEMP, (1<<7) | 0x00			;Cursor en cero
+	CALL UI_SEND_INSTRUCTION
+
+	CALL UI_WRITE_D_STRING
+
+	RET
