@@ -1,8 +1,6 @@
 
-.EQU RXD = 0
-.EQU TXD = 1
 
-.EQU UART_UBRR = 103 ; 9600
+.EQU SOFT_UART_SUBR = 51 ; Fclk / (4 * Pre * Baud rate) - 1
 
 .EQU UART_CONNECTION_TIMEOUT = 16000 ; ciclos de timer1
 
@@ -24,40 +22,19 @@ USB_INIT:
 
 	BUFFER_CLEAR USB_BUFFER_POINTER
 
-	;Configurar pines
+	LDI TEMP, SOFT_UART_SUBR
+	STS SUBR, TEMP
 
-	CBI DDRD,RXD
-	SBI DDRD,TXD
-	
-	;Setear baud rate
-	LDI TEMP, LOW(UART_UBRR)
-	STS UBRR0L, TEMP
-	LDI TEMP, HIGH(UART_UBRR)
-	STS UBRR0H, TEMP
-	
-	STS UCSR0A, ZERO_REG
-
-	;Configurar 8 bits de transferencia, sin paridad, 1 stop bit
-	LDI TEMP, (1<<UCSZ01)| (1<<UCSZ00)
-	STS UCSR0C, TEMP
-
-	;Habilitar envio, recepcion e interrupciones
-	LDI TEMP, (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0)
-	STS UCSR0B, TEMP
+	CALL SOFT_UART_INIT
 
 	RET
 
 ;Subrutina para enviar un caracter por USB
-.DEF CHAR_REG = R16
-.DEF TEMP = R17
-	
+.DEF CHAR_REG = R16	
 USB_SEND_CHAR:
-	;Esperar a que el buffer este listo
-	LDS TEMP, UCSR0A
-	ANDI TEMP, (1<<UDRE0)
-	BREQ USB_SEND_CHAR
 	
-	STS UDR0, CHAR_REG
+	STS SUODR, CHAR_REG
+	CALL SOFT_UART_SEND_BYTE
 	
 	RET
 	
@@ -65,12 +42,14 @@ USB_SEND_CHAR:
 .DEF CHAR_REG = R16
 
 USB_SEND_D_LINE:
+
 	PUSH XL
 	PUSH XH
 	
 	USB_SEND_D_STRING_LOOP:
 		LD CHAR_REG, X+
-		RCALL USB_SEND_CHAR
+		STS SUODR, CHAR_REG
+		CALL SOFT_UART_SEND_BYTE
 		CPI CHAR_REG, '\n'
 		BRNE USB_SEND_D_STRING_LOOP
 	
@@ -83,18 +62,20 @@ USB_SEND_D_LINE:
 .DEF CHAR_REG = R16
 
 USB_SEND_P_LINE:
+
 	PUSH ZL
 	PUSH ZH
 	
 	USB_SEND_P_STRING_LOOP:
 		LPM CHAR_REG, Z+
-		RCALL USB_SEND_CHAR
+		STS SUODR, CHAR_REG
+		CALL SOFT_UART_SEND_BYTE
 		CPI CHAR_REG, '\n'
 		BRNE USB_SEND_P_STRING_LOOP
 	
 	POP ZH
 	POP ZL
-	
+
 	RET
 	
 ;Interrupcion de arribo de un dato. Se guardan en stack todos los registros usados por la macro BUFFER_INSERT_CHAR
@@ -111,8 +92,9 @@ USB_INTERRUPT:
 	PUSH YH
 	
 	IN SREG_REG, SREG
-
-	LDS R16, UDR0
+	
+	LDS R16, SUIDR
+	
 	BUFFER_INSERT_CHAR USB_BUFFER, USB_BUFFER_POINTER
 
 	;Tomar timestap
@@ -127,7 +109,7 @@ USB_INTERRUPT:
 	STS ULCT+1, R17
 	STS ULCT+2, R18
 	STS ULCT+3, R19
-
+	
 	OUT SREG, SREG_REG
 	
 	POP YH
@@ -137,7 +119,7 @@ USB_INTERRUPT:
 	POP R17
 	POP R16
 	POP SREG_REG
-	RETI
+	RETF
 	
 ;Subrutina para verificar si se desconecto el usb. Devuelve 1 en R16 si hay timeout, 0 sino.
 	
