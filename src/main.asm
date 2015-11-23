@@ -2,12 +2,12 @@
 
 .EQU UIS = 0
 
-.EQU UII = 1 ;0: Interfaz Valida			1: Refrescar Interfaz
-.EQU UC  = 2  ;0: USB desconectado			1: USB conectado
-.EQU CSS = 3 ;0: Renviar datos a GRBL		1: Guardar datos en SD
-.EQU SFF = 4 ;0: No hay programa guardado	1: Hay programa guardado
-.EQU GD = 5 ;0: GRBL disponible , 1: GRBL procesando instruccion
-.EQU RSS = 6 ;0: operacion corriendo , 1: operacion pausada
+.EQU UII = 1	;0: Interfaz Valida				1: Refrescar Interfaz
+.EQU UC  = 2	;0: USB desconectado			1: USB conectado
+.EQU CSS = 3	;0: Renviar datos a GRBL		1: Guardar datos en SD
+.EQU SFF = 4	;0: No hay programa guardado	1: Hay programa guardado
+.EQU GD = 5		;0: GRBL disponible				1: GRBL procesando instruccion
+.EQU RSS = 6	;0: operacion corriendo			1: operacion pausada
 
 .DSEG
 CURRENT_STATE: .BYTE 1
