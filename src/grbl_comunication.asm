@@ -13,7 +13,7 @@ GRBL_BUFFER_POINTER: .BYTE 1
 ;Constantes
 
 GRBL_OK:
-.DB "ok",'\n' , 0x00
+.DB "ok" , 0x00
 
 GRBL_ERROR:
 .DB "error", 0x00
