@@ -222,7 +222,7 @@ SOFT_UART_INTERRUPT:
 			DEC BITS_READ
 			BRNE READ_BIT
 
-		RCALL SOFT_UART_READ_BIT
+		RCALL SOFT_UART_READ_LAST_BIT
 		
 		BRCC FRAMING_ERROR ;Si el ultimo bit leido es bajo informar error
 
@@ -304,6 +304,37 @@ SOFT_UART_READ_BIT:
 	SET_CARRY_HIGH:
 		SEC
 	READ_CONTINUE:
+
+	RET
+	
+;Subrutina para leer el ultimo bit sin esperar el ultimo ciclo del timer
+SOFT_UART_READ_LAST_BIT:
+	
+	CLR SAMPLES
+	LDI SAMPLE_COUNT, 3
+
+	TIMER_LOOP_LAST_BIT:
+		IN TEMP, SOFT_UART_TIFR
+		SBRS TEMP, SOFT_UART_OCF ;Esperar a que el timer cuente
+		RJMP TIMER_LOOP
+
+		SBIC SOFT_UART_RX_PIN, SOFT_UART_RX ;Contar si el pin esta en alto
+			INC SAMPLES
+
+		IN TEMP, SOFT_UART_TIFR
+		ORI TEMP, 1<<SOFT_UART_OCF
+		OUT SOFT_UART_TIFR, TEMP ;Limpiar flag
+
+		DEC SAMPLE_COUNT
+		BRNE TIMER_LOOP_LAST_BIT
+
+	CPI SAMPLES, 2 ;Comparar muestras en alto con 2
+	BRSH SET_CARRY_HIGH_LAST_BIT ;Si son 2 o 3 setear carry
+		CLC
+	RJMP READ_CONTINUE_LAST_BIT
+	SET_CARRY_HIGH_LAST_BIT:
+		SEC
+	READ_CONTINUE_LAST_BIT:
 
 	RET
 	
